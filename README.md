@@ -90,5 +90,17 @@ int TBS_UTIL_DISABLE_OPTIMIZATIONS test6(int a, int b) {
 /* See example code files. */
 ````
 
+If you like to see the log of the encryption etc. comment out this line in the Makefile:¨
+
+`CFLAGS+=-DTBS_LOG_DISABLE`
+
 There is an example tool which is called `crypt`. This tool allows to obfuscate comiled binaries or to unobfuscate them. Or also to re-obfuscate a binary with a new key.
+
+````
+./crypt -e example # encrypt / obfuscate
+./crypt -d example # decrypt
+./crypt -r example # re-obfuscate
+````
+
+All these function can also be used in the program itself. crypt is very easy and small, it shows how the API may be used. If you enable the log in the Makefile the crypt tool will shows many interesting details about which machine code has been changed to what code.
 
