@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
 void help(const char *arg0) {
     printf("libtbs-bincr: crypt-Tool\n");
     printf("~~~~~~~~~~~~~~~~~~~~~~~~\n");
-    printf("by Benj Meier\n");
+    printf("by Benjamin Bruno Meier\n");
     printf("\n");
     printf("Usage:\n");
     printf("%s [-e|-d|-r|-t|-h] file1 file2 file3...\n", arg0);
