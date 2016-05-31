@@ -104,3 +104,4 @@ There is an example tool which is called `crypt`. This tool allows to obfuscate 
 
 All these function can also be used in the program itself. crypt is very easy and small, it shows how the API may be used. If you enable the log in the Makefile the crypt tool will shows many interesting details about which machine code has been changed to what code.
 
+If you have any questions do not hesitate to contact me.
