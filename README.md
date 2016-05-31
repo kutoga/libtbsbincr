@@ -1,7 +1,7 @@
 # libtbsbincr
 
 libtbsbincr is a C/C++ library which allows to obfuscate machine code for Windows and Linux
-C/C++ program on x86/x64.
+C/C++ program on x86/x64. It compiles without any problems with clang and gcc with the error flags -Wall -Wextra -Werror.
 
 Take this code:
 ```
@@ -29,4 +29,66 @@ unsigned TBS_UTIL_DISABLE_OPTIMIZATIONS fac_test(unsigned n) {
 ```
 
 Every function which contains obfuscated code should use the TBS_UTIL_DISABLE_OPTIMIZATIONS macro (see example3.c for explanation). The obfuscated code itself is inside of tbs_enc_code_ft. At runtime at the code position is just crap and as soon as the code is executed it is replaced by the real machine code. After the code is executed it will be obfuscasted again by a new key. Also binary files always can be reobfuscated which means the code will be "encrpyted" with a new key.
+
+
+The library has many different obfuscation functions:
+- Replace the obfuscated code only once at runtime and do not again obfuscate its machine code.
+- Threadsafe or not threadsafe functions
+- Easier to use macros for specific situations.
+...
+
+Now there are some examples:
+````
+/*
+ * If multiple encrypted (could be nested) sections are used, they require a number.
+ * tbs_enc_code_ft_n is threadsafe.
+ */
+int TBS_UTIL_DISABLE_OPTIMIZATIONS test5(int a) {
+    int res = a;
+    tbs_enc_code_ft_n(0,
+        res += a;
+        tbs_enc_code_ft_n(1,
+            res += a;
+            tbs_enc_code_ft_n(2,
+                res += a;
+                tbs_enc_code_ft_n(3,
+                    res += a;
+                    
+                    /* and so on... */
+                    if (res < 20) {
+                        tbs_enc_code_ft_n(4,
+                            res += a;
+                        );
+                    }
+                );
+            );
+        );
+    );
+    return res;
+}
+
+/* Also statements may be encrypted. These macros are not threadsafe. The threadsafe macros contain always "_ft_" int their name. */
+int TBS_UTIL_DISABLE_OPTIMIZATIONS test6(int a, int b) {
+    int res = 0;
+
+    res += tbs_enc_stmt(a * b);
+    
+    /* A stmt is alwas libe a enc_code, so if multiple stmts are mixed and also code (inside one function) then an index is needed. */
+    tbs_enc_code_n(TBS_UTIL_COUNTER,
+        res += tbs_enc_stmt_n(TBS_UTIL_COUNTER, a * b);
+        res += tbs_enc_stmt_n(TBS_UTIL_COUNTER, a * b);
+        res += tbs_enc_stmt_n(TBS_UTIL_COUNTER, a * b);
+        
+        /* "n" can still be provided. */
+        res += tbs_enc_stmt_n(TBS_UTIL_COUNTER, a * b);
+    );
+    
+    return res;
+}
+
+...
+/* See example code files. */
+````
+
+There is an example tool which is called `crypt`. This tool allows to obfuscate comiled binaries or to unobfuscate them. Or also to re-obfuscate a binary with a new key.
 
