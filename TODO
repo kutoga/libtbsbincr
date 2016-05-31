@@ -1,0 +1,50 @@
+- Improve "cipher":
+84 DB 74 28 8B 44 24 20 03 44 24 24 C7 04 24 24 40 40 00 89 44 24 0C 8B 44 24 24 89 44 24 08 8B 44 24 20 89 44 24 04 E8 87 13 00 00
+A9 FE 49 DD A6 61 19 D5 2E 61 19 D1 EA 21 19 D1 6D 65 3D 7C 69 01 31 7E 69 01 19 7C 69 01 35 7E 69 01 1D 7C 69 01 39 1D AA 36 3D F5
+(very bad)
+
+- See TODO file in other directory
+- Add a LIBTBS_BINCR_DISABLE_ENCRYPTION flag to disable all the funny encryption thing (for testing etc)
+
+- Recursive calls:
+ - if an auto-reencrypt macro is added, do it like this
+  - create a macro which encrypts a given block
+  - use the decrypt macr add the encrpt macro and you get the encdec macro
+   - this is important, so the user itself can call the encryption which is sometimes needed for the recursive calls and blabla
+
+- threadsafety:
+ - add two macros to make code thread safe (e.g. semaphores)
+ - decrypt when the first user accesses region
+ - encrypt when no longer users are there
+e.g.
+
+tbs_bincr_decrypt_n(0);
+tbs_enc_code(
+    int i;
+    for (i = 0; i < 10; i++) {
+        blabla;
+    }
+);
+tbs_bincr_encrypt_n(0);
+
+
+- Add extern C to the header files
+- Write log (complete the bincr/core.c)
+- Add linux 64bit support
+- Optimization doesnt woprk at all...
+ - ftree-teris the bad boy of -O1
+
+
+x- Add reencryption support
+x- Make flags: Create different flags for different target architectures
+x    gcc -v 2>&1 | grep Target | awk '{print$2}'
+
+- Split decrypt function into some smaller functions
+x- example1 doesnt run (if it is encrypted)
+x- For all library functions: if they are encrypted: use full encryption to allow multithreading
+x- Merge encrypt/decrypt/reencrypt to crypt tool
+x- There are mandy log messages with addresses like 0x0x1234, fix this shit:) it looks ugly
+x- encrypt vs crpt -e produces different files?
+    x-=>encrpyt no longer exists, so i cannot test this
+x. crypt -r optimization_test always creates the same file?
+

@@ -1,0 +1,7 @@
+#LDFLAGS+=-m32
+#CFLAGS+=-m32
+#CC=gcc
+CXX=g++
+
+CC=$(CXX)
+

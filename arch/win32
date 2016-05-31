@@ -1,0 +1,7 @@
+CC:=i586-mingw32msvc-gcc
+CXX:=i586-mingw32msvc-g++
+STRIP=i586-mingw32msvc-strip
+BIN_EXT:=.exe
+SO_EXT:=.dll
+LDFLAGS:=-mwindows
+

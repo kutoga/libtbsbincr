@@ -1,0 +1,9 @@
+CC:=i686-w64-mingw32-gcc
+CXX:=i686-w64-mingw32-g++
+#STRIP=i686-w64-mingw32-strip
+STRIP=
+BIN_EXT:=.exe
+SO_EXT:=.dll
+#LDFLAGS:=-mwindows
+LDFLAGS:=-std=c++11
+

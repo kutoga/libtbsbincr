@@ -1,2 +1,8 @@
 # libtbsbincr
-A c/c++ library which allows runtime and compile-time machine code obfuscation.
+
+libtbsbincr is a C/C++ library which allows to obfuscate machine code for Windows and Linux
+C/C++ program on x86/x64.
+
+```
+```
+
