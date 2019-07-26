@@ -3,6 +3,12 @@
 libtbsbincr is a C/C++ library which allows to obfuscate machine code for Windows and Linux
 C/C++ program on x86/x64. It compiles without any problems with clang and gcc with the error flags -Wall -Wextra -Werror.
 
+Everything can be compiled by just executing `make`. The target architecture can be defined with the `ARCH` flag.
+E.g. `make ARCH=WIN32` or `make ARCH=WIN64` cross-compile the code for windows. `ARCH=local` uses the local architecture.
+The resulting binaries are located in `bin/tbs/bincr`.
+
+Below are some examples that show how this library can be used.
+
 Take this code:
 ```
 unsigned fac_test(unsigned n) {
@@ -73,7 +79,7 @@ int TBS_UTIL_DISABLE_OPTIMIZATIONS test6(int a, int b) {
 
     res += tbs_enc_stmt(a * b);
     
-    /* A stmt is alwas libe a enc_code, so if multiple stmts are mixed and also code (inside one function) then an index is needed. */
+    /* A stmt is always like a enc_code, so if multiple stmts are mixed and also code (inside one function) then an index is needed. */
     tbs_enc_code_n(TBS_UTIL_COUNTER,
         res += tbs_enc_stmt_n(TBS_UTIL_COUNTER, a * b);
         res += tbs_enc_stmt_n(TBS_UTIL_COUNTER, a * b);
