@@ -10,7 +10,7 @@ The resulting binaries are located in `bin/tbs/bincr`.
 Below are some examples that show how this library can be used.
 
 Take this code:
-```
+```c
 unsigned fac_test(unsigned n) {
     unsigned res = 1;
     if (n >= 2) {
@@ -22,7 +22,7 @@ unsigned fac_test(unsigned n) {
 
 For some reason you want to make it hard for third-persons to debug or analyze the machine code. Then you could do this:
 
-```
+```c
 unsigned TBS_UTIL_DISABLE_OPTIMIZATIONS fac_test(unsigned n) {
     unsigned res = 1;
     tbs_enc_code_ft(
@@ -44,7 +44,7 @@ The library has many different obfuscation functions:
 ...
 
 Now there are some examples:
-````
+```c
 /*
  * If multiple encrypted (could be nested) sections are used, they require a number.
  * tbs_enc_code_ft_n is threadsafe.
@@ -94,7 +94,7 @@ int TBS_UTIL_DISABLE_OPTIMIZATIONS test6(int a, int b) {
 
 ...
 /* See example code files. */
-````
+```
 
 If you like to see the log of the encryption etc. comment out this line in the Makefile:¨
 
