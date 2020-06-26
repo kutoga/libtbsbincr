@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <pthread.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdint.h>
 
@@ -33,10 +34,26 @@ _TBS_STMT_WRAPPER()
 
 
 #define _TBS_LABEL(label_name)                                              \
-_TBS_STMT_WRAPPER(                                                          \
+_TBS_STMT_WRAPPER(                                                       \
     label_name:                                                             \
     _TBS_STMT_EMPTY;                                                        \
 )
+
+// log
+
+#define _TBS_LOG_PRINTD(file, level, ...)                                   \
+_TBS_STMT_WRAPPER(                                                          \
+    fprintf((file), "[%30s:%-4d] [%25s] ", __FILE__, __LINE__, __FUNCTION__);\
+    fprintf((file), level ": " __VA_ARGS__);                                \
+    fputc('\n', (file));                                                    \
+    fflush(file);                                                           \
+)
+
+#define _tbs_log_trace(...)                                     _TBS_LOG_PRINTD(stdout, "TRACE", __VA_ARGS__)
+#define _tbs_log_info(...)                                      _TBS_LOG_PRINTD(stdout, "INFO ", __VA_ARGS__)
+#define _tbs_log_warn(...)                                      _TBS_LOG_PRINTD(stderr, "WARN ", __VA_ARGS__)
+#define _tbs_log_err(...)                                       _TBS_LOG_PRINTD(stderr, "ERROR", __VA_ARGS__)
+#define _tbs_log_fatal(...)                                     _TBS_LOG_PRINTD(stderr, "FATAL", __VA_ARGS__)
 
 // threading
 
@@ -70,6 +87,7 @@ _TBS_STMT_WRAPPER(                                                          \
         pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));                \
     }                                                                       \
 }
+
 
 // keygen
 
@@ -128,8 +146,8 @@ _TBS_STRUCT_IGNORE_OVERRIDE_EXP(((_tbs_section_config) {                    \
 _TBS_STMT_WRAPPER(                                                          \
     const _tbs_section_config _TBS_SYM_NAME(n, config) =                    \
         _TBS_SECTION_CONFIG_DEFAULT(__VA_ARGS__);                           \
-    goto _TBS_SYM_NAME(n, section_start); \
-    goto _TBS_SYM_NAME(n, section_end); \
+    if (0) goto _TBS_SYM_NAME(n, section_start); \
+    if (0) goto _TBS_SYM_NAME(n, section_end); \
     _TBS_EXPRESSION_WITH_ACCESS_COUNT(                                         \
         n,                                                                  \
         _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), thread_safe) &&   \
@@ -137,41 +155,60 @@ _TBS_STMT_WRAPPER(                                                          \
         {                                                  \
             _TBS_LABEL(_TBS_SYM_NAME(n, section_start));                    \
             code;                                                           \
+            _tbs_log_trace("code done");\
             _TBS_LABEL(_TBS_SYM_NAME(n, section_end));                      \
         },                                                                  \
         _TBS_STMT_WRAPPER(                                                  \
             /* decrypt */                                                   \
+            _tbs_log_trace("decrypt");\
         ),                                                                  \
         _TBS_STMT_WRAPPER(                                                  \
             /* encrypt */                                                   \
+            _tbs_log_trace("encrypt");\
         ),                                                                  \
         _TBS_STMT_WRAPPER(                                                  \
             /* descrypt */                                                  \
+            _tbs_log_trace("init decrypt");\
         )                                                                   \
     )                                                                       \
 )
 
 #define tbs_enc(code, ...)                                                  \
-_TBS_ENC(__COUNTER__, _TBS_STMT_WRAPPER(code), __VA_ARGS__)
+_TBS_ENC(__COUNTER__, code, __VA_ARGS__)
+
+#define _TBS_ENC_EXP(n, expression, ...)                                        \
+({                                                                          \
+    typeof(expression) _TBS_SYM_NAME(x, exp_res);                              \
+    _TBS_ENC(n, {                                                               \
+        _TBS_SYM_NAME(x, exp_res) = (expression);                              \
+    }, __VA_ARGS__);                                                        \
+    _TBS_SYM_NAME(x, exp_res);                                                 \
+})
+
+#define tbs_enc_exp(expression, ...) \
+_TBS_ENC_EXP(__COUNTER__, expression, __VA_ARGS__)
 
 
 int main() {
-    const tbs_config cfg = tbs_config_default(thread_safe: false);
+    // const tbs_config cfg = tbs_config_default(thread_safe: false);
 
-    _TBS_USE_VAR(cfg);
+    // _TBS_USE_VAR(cfg);
 
-    tbs_enc({
-        printf("hey\n");
-    });
+    // tbs_enc({
+    //     printf("hey\n");
+    // }, re_encrypt: false);
+
+    // int a = tbs_enc_exp(1) + tbs_enc_exp(2); // + tbs_enc_exp(2 * tbs_enc_exp(3)));
+    // printf("%d\n", a);
+
+    // // tbs_enc({
+    // //     printf("ho\n");
+    // // }, thread_safe: false);
 
     tbs_enc({
         printf("ho\n");
-    }, thread_safe: false);
-
-    // tbs_enc({
-    //     printf("ho\n");
-    //     tbs_enc({
-    //         printf("go\n");
-    //     });
-    // });
+        tbs_enc({
+            printf("go\n");
+        });
+    });
 }
