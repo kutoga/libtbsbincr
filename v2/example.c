@@ -11,6 +11,11 @@ do { code } while (0)                                                       \
 #define _TBS_STMT_EMPTY                                                     \
 _TBS_STMT_WRAPPER()
 
+#define _TBS_STMT_TO_EXPRESSION(stmt)                                       \
+({ stmt; NULL; })
+
+#define _TBS_USE_VAR(var)                                                   (void)(var)
+
 #define _TBS_STRUCT_IGNORE_OVERRIDE_EXP(expression)                         \
 ({                                                                          \
     _Pragma("GCC diagnostic push")                                          \
@@ -55,7 +60,7 @@ _TBS_STMT_WRAPPER(                                                          \
             pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));            \
         }                                                                   \
     }                                                                       \
-    const typeof(code) _TBS_SYM_NAME(n, res) = (expression);                \
+    const typeof(expression) _TBS_SYM_NAME(n, res) = (expression);                \
     if (enabled) {                                                          \
         pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));                \
         if (--_TBS_SYM_NAME(n, access_count) == 0) {                        \
@@ -122,17 +127,19 @@ _TBS_STRUCT_IGNORE_OVERRIDE_EXP(((_tbs_section_config) {                    \
 #define _TBS_ENC(n, code, ...)                                              \
 _TBS_STMT_WRAPPER(                                                          \
     goto _TBS_SYM_NAME(n, section_start); \
+    goto _TBS_SYM_NAME(n, section_end); \
     const _tbs_section_config _TBS_SYM_NAME(n, config) =                    \
         _TBS_SECTION_CONFIG_DEFAULT(__VA_ARGS__);                           \
     _TBS_EXPRESSION_WITH_ACCESS_COUNT(                                         \
         n,                                                                  \
         _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), thread_safe) &&   \
         _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), re_encrypt),      \
-        _TBS_STMT_WRAPPER(                                                  \
+        ({                                                  \
             _TBS_LABEL(_TBS_SYM_NAME(n, section_start));                    \
             code;                                                           \
             _TBS_LABEL(_TBS_SYM_NAME(n, section_end));                      \
-        ),                                                                  \
+            0;\
+        }),                                                                  \
         _TBS_STMT_WRAPPER(                                                  \
             /* decrypt */                                                   \
         ),                                                                  \
@@ -152,14 +159,16 @@ _TBS_ENC(__COUNTER__, _TBS_STMT_WRAPPER(code), __VA_ARGS__)
 int main() {
     const tbs_config cfg = tbs_config_default(thread_safe: false);
 
+    _TBS_USE_VAR(cfg);
+
     tbs_enc({
         printf("hey\n");
     });
 
-    tbs_enc({
-        printf("ho\n");
-        tbs_enc({
-            printf("go\n");
-        });
-    });
+    // tbs_enc({
+    //     printf("ho\n");
+    //     tbs_enc({
+    //         printf("go\n");
+    //     });
+    // });
 }
