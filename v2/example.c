@@ -6,7 +6,7 @@
 // Base macros
 
 #define _TBS_STMT_WRAPPER(code)                                             \
-do { code } while (0)                                                       \
+do { code; } while (0)                                                       \
 
 #define _TBS_STMT_EMPTY                                                     \
 _TBS_STMT_WRAPPER()
@@ -16,6 +16,8 @@ _TBS_STMT_WRAPPER()
 
 #define _TBS_USE_VAR(var)                                                   (void)(var)
 
+#define _TBS_SYM_NAME(n, name)                                             _tbs_ ## n ## __ ## name
+
 #define _TBS_STRUCT_IGNORE_OVERRIDE_EXP(expression)                         \
 ({                                                                          \
     _Pragma("GCC diagnostic push")                                          \
@@ -24,12 +26,11 @@ _TBS_STMT_WRAPPER()
     _Pragma("GCC diagnostic ignored \"-Wgnu-designator\"")                  \
     _Pragma("GCC diagnostic ignored \"-Woverride-init\"")                   \
     _Pragma("GCC diagnostic ignored \"-Winitializer-overrides\"")           \
-    const typeof(expression) _tbs_res = (expression);                       \
+    const typeof(expression) _TBS_SYM_NAME(0, res) = (expression);                       \
     _Pragma("GCC diagnostic pop")                                           \
-    _tbs_res;                                                               \
+    _TBS_SYM_NAME(0, res);                                                               \
 })
 
-#define _TBS_SYM_NAME(n, name)                                             _tbs_ ## n ## __ ## name
 
 #define _TBS_LABEL(label_name)                                              \
 _TBS_STMT_WRAPPER(                                                          \
@@ -39,37 +40,36 @@ _TBS_STMT_WRAPPER(                                                          \
 
 // threading
 
-#define _TBS_EXPRESSION_WITH_ACCESS_COUNT(n, enabled, expression, enter_code, exit_code, if_disabled_init_code) \
-({                                                          \
+#define _TBS_EXPRESSION_WITH_ACCESS_COUNT(n, enabled, code, enter_stmt, exit_stmt, if_disabled_init_stmt) \
+{                                                          \
     static pthread_mutex_t _TBS_SYM_NAME(n, section_lock) = PTHREAD_MUTEX_INITIALIZER;\
     static unsigned int _TBS_SYM_NAME(n, access_count) = 0;                 \
     if (enabled) {                                                          \
         pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));                \
         if (_TBS_SYM_NAME(n, access_count)++ == 0) {                        \
-            enter_code                                                      \
+            enter_stmt;                                                      \
         }                                                                   \
-        pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));                \
+        pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));                \
     } else {                                                                \
         static bool _TBS_SYM_NAME(n, initialized) = false;                  \
         if (!_TBS_SYM_NAME(n, initialized)) {                               \
             pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));            \
             if (!_TBS_SYM_NAME(n, initialized)) {                           \
                 _TBS_SYM_NAME(n, initialized) = true;                       \
-                if_disabled_init_code;                                      \
+                if_disabled_init_stmt;                                      \
             }                                                               \
-            pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));            \
+            pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));            \
         }                                                                   \
     }                                                                       \
-    const typeof(expression) _TBS_SYM_NAME(n, res) = (expression);                \
+    code;                \
     if (enabled) {                                                          \
         pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));                \
         if (--_TBS_SYM_NAME(n, access_count) == 0) {                        \
-            exit_code                                                       \
+            exit_stmt;                                                       \
         }                                                                   \
-        pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));                \
+        pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));                \
     }                                                                       \
-    _TBS_SYM_NAME(n, res);                                                  \
-})
+}
 
 // keygen
 
@@ -126,20 +126,19 @@ _TBS_STRUCT_IGNORE_OVERRIDE_EXP(((_tbs_section_config) {                    \
 
 #define _TBS_ENC(n, code, ...)                                              \
 _TBS_STMT_WRAPPER(                                                          \
-    goto _TBS_SYM_NAME(n, section_start); \
-    goto _TBS_SYM_NAME(n, section_end); \
     const _tbs_section_config _TBS_SYM_NAME(n, config) =                    \
         _TBS_SECTION_CONFIG_DEFAULT(__VA_ARGS__);                           \
+    goto _TBS_SYM_NAME(n, section_start); \
+    goto _TBS_SYM_NAME(n, section_end); \
     _TBS_EXPRESSION_WITH_ACCESS_COUNT(                                         \
         n,                                                                  \
         _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), thread_safe) &&   \
         _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), re_encrypt),      \
-        ({                                                  \
+        {                                                  \
             _TBS_LABEL(_TBS_SYM_NAME(n, section_start));                    \
             code;                                                           \
             _TBS_LABEL(_TBS_SYM_NAME(n, section_end));                      \
-            0;\
-        }),                                                                  \
+        },                                                                  \
         _TBS_STMT_WRAPPER(                                                  \
             /* decrypt */                                                   \
         ),                                                                  \
@@ -164,6 +163,10 @@ int main() {
     tbs_enc({
         printf("hey\n");
     });
+
+    tbs_enc({
+        printf("ho\n");
+    }, thread_safe: false);
 
     // tbs_enc({
     //     printf("ho\n");
