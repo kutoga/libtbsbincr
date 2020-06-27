@@ -179,6 +179,7 @@ _TBS_ENC(__COUNTER__, code, __VA_ARGS__)
 
 #define _TBS_ENC_EXP(n, expression, ...)                                        \
 ({                                                                          \
+/* does not work, because "expression" contains a goto if nested encryptions are used... */ \
     typeof(expression) _TBS_SYM_NAME(n, exp_res);                              \
     _TBS_ENC(n, {                                                               \
         _TBS_SYM_NAME(n, exp_res) = (expression);                              \
@@ -206,17 +207,17 @@ int main() {
     // //     printf("ho\n");
     // // }, thread_safe: false);
 
-    tbs_enc({
-        printf("ho\n");
-        tbs_enc({
-            printf("go\n");
-        });
-        tbs_enc(
-            printf("%d + %d = %d\n",
-                tbs_enc_exp(1), tbs_enc_exp(3), tbs_enc_exp(1 + 3));
-        );
-    });
+    // tbs_enc({
+    //     printf("ho\n");
+    //     tbs_enc({
+    //         printf("go\n");
+    //     });
+    //     tbs_enc(
+    //         printf("%d + %d = %d\n",
+    //             tbs_enc_exp(1), tbs_enc_exp(3), tbs_enc_exp(1 + 3));
+    //     );
+    // });
 
-    const int a = tbs_enc_exp(1); // + tbs_enc_exp(3));
+    const int a = tbs_enc_exp(1 + tbs_enc_exp(3));
     (void)a;
 }
