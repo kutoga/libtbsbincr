@@ -143,7 +143,7 @@ _TBS_STRUCT_IGNORE_OVERRIDE_EXP(((_tbs_section_config) {                    \
 // tbs_enc_macros
 
 #define _TBS_ENC(n, code, ...)                                              \
-_TBS_STMT_WRAPPER(                                                          \
+_TBS_STMT_WRAPPER(({                                                          \
     const _tbs_section_config _TBS_SYM_NAME(n, config) =                    \
         _TBS_SECTION_CONFIG_DEFAULT(__VA_ARGS__);                           \
     if (0) goto _TBS_SYM_NAME(n, section_start); \
@@ -170,19 +170,20 @@ _TBS_STMT_WRAPPER(                                                          \
             /* descrypt */                                                  \
             _tbs_log_trace("init decrypt");\
         )                                                                   \
-    )                                                                       \
-)
+    );                                                                       \
+    NULL;                                                                   \
+}))
 
 #define tbs_enc(code, ...)                                                  \
 _TBS_ENC(__COUNTER__, code, __VA_ARGS__)
 
 #define _TBS_ENC_EXP(n, expression, ...)                                        \
 ({                                                                          \
-    typeof(expression) _TBS_SYM_NAME(x, exp_res);                              \
+    typeof(expression) _TBS_SYM_NAME(n, exp_res);                              \
     _TBS_ENC(n, {                                                               \
-        _TBS_SYM_NAME(x, exp_res) = (expression);                              \
+        _TBS_SYM_NAME(n, exp_res) = (expression);                              \
     }, __VA_ARGS__);                                                        \
-    _TBS_SYM_NAME(x, exp_res);                                                 \
+    _TBS_SYM_NAME(n, exp_res);                                                 \
 })
 
 #define tbs_enc_exp(expression, ...) \
@@ -210,5 +211,12 @@ int main() {
         tbs_enc({
             printf("go\n");
         });
+        tbs_enc(
+            printf("%d + %d = %d\n",
+                tbs_enc_exp(1), tbs_enc_exp(3), tbs_enc_exp(1 + 3));
+        );
     });
+
+    const int a = tbs_enc_exp(1); // + tbs_enc_exp(3));
+    (void)a;
 }
