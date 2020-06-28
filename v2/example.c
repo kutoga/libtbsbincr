@@ -27,7 +27,22 @@ int main() {
         );
     });
 
+
             printf("%d + %d = %d\n",
                 tbs_enc_exp(1), tbs_enc_exp(3), tbs_enc_exp(1 + 3));
     // printf("%d\n", tbs_enc_exp(1));
 }
+
+/*
+ * TODO: enable / disable recursive calls
+ *
+ * TODO: enable user defined encryption / decryption
+ * TODO (basically the same format as before; a little bit more sophisticated): 
+ Head (
+[enc|dec][uint32_key][uint32_length][head_chk]
+
+(if decrypted, it is a valid and simple sequence)
+
+Foot:
+[dummy sequence]
+*/
