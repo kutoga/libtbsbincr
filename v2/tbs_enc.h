@@ -19,18 +19,35 @@ _TBS_STMT_WRAPPER()
 
 #define _TBS_SYM_NAME(n, name)                                             _tbs_ ## n ## __ ## name
 
+
+#if defined(__GNUC__) && !defined(__clang__)
+#define _TBS_IS_GCC
+#endif
+
+#ifdef _TBS_IS_GCC
+
 #define _TBS_STRUCT_IGNORE_OVERRIDE_EXP(expression)                         \
 ({                                                                          \
     _Pragma("GCC diagnostic push")                                          \
-    _Pragma("GCC diagnostic ignored \"-Wpragmas\"")          \
-    _Pragma("GCC diagnostic ignored \"-Wunknown-warning-option\"")          \
-    _Pragma("GCC diagnostic ignored \"-Wgnu-designator\"")                  \
     _Pragma("GCC diagnostic ignored \"-Woverride-init\"")                   \
-    _Pragma("GCC diagnostic ignored \"-Winitializer-overrides\"") }          \
-    const __auto_type _TBS_SYM_NAME(0, ign_ovverride_res) = (expression);                       \
+    (expression);                       \
     _Pragma("GCC diagnostic pop")                                          \
-    _TBS_SYM_NAME(0, ign_ovverride_res);                                                               \
 })
+
+#else
+
+#define _TBS_STRUCT_IGNORE_OVERRIDE_EXP(expression)                         \
+({                                                                          \
+    _Pragma("GCC diagnostic push")                                          \
+    _Pragma("GCC diagnostic ignored \"-Wunknown-warning-option\"")                   \
+    _Pragma("GCC diagnostic ignored \"-Woverride-init\"")                   \
+    _Pragma("GCC diagnostic ignored \"-Winitializer-overrides\"")                   \
+    _Pragma("GCC diagnostic ignored \"-Wgnu-designator\"")                   \
+    (expression);                       \
+    _Pragma("GCC diagnostic pop")                                          \
+})
+
+#endif
 
 
 #define _TBS_LABEL(label_name)                                              \

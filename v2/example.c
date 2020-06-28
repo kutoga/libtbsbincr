@@ -27,6 +27,7 @@ int main() {
         );
     });
 
-    // const int a = tbs_enc_exp(1); // + tbs_enc_exp(3));
-    // (void)a;
+            printf("%d + %d = %d\n",
+                tbs_enc_exp(1), tbs_enc_exp(3), tbs_enc_exp(1 + 3));
+    // printf("%d\n", tbs_enc_exp(1));
 }
