@@ -6,19 +6,15 @@
 
 // Base macros
 
-#define _TBS_STMT_WRAPPER(code)                                             \
-do { code; } while (0)                                                       \
+#define _TBS_STMT_WRAPPER(code)                                             do { code; } while (0)
 
-#define _TBS_STMT_EMPTY                                                     \
-_TBS_STMT_WRAPPER()
+#define _TBS_STMT_EMPTY                                                     _TBS_STMT_WRAPPER()
 
-#define _TBS_STMT_TO_EXPRESSION(stmt)                                       \
-({ stmt; NULL; })
+#define _TBS_STMT_TO_EXPRESSION(stmt)                                       ({ stmt; NULL; })
 
 #define _TBS_USE_VAR(var)                                                   (void)(var)
 
 #define _TBS_SYM_NAME(n, name)                                             _tbs_ ## n ## __ ## name
-
 
 #if defined(__GNUC__) && !defined(__clang__)
 #define _TBS_IS_GCC
@@ -26,12 +22,20 @@ _TBS_STMT_WRAPPER()
 
 #ifdef _TBS_IS_GCC
 
+/*
+ * gcc (at least v7.5) has buggy behaviour with the more general
+ * _Pragma version that works with gcc and clang. In situations where
+ * this macro is used multiple times, it might miss-place the _Pragmas.
+ * Other compilers, like clang, work perfectly fine.
+ * 
+ * For this reason, there is one version which is only used with gcc.
+ */
 #define _TBS_STRUCT_IGNORE_OVERRIDE_EXP(expression)                         \
 ({                                                                          \
     _Pragma("GCC diagnostic push")                                          \
     _Pragma("GCC diagnostic ignored \"-Woverride-init\"")                   \
-    (expression);                       \
-    _Pragma("GCC diagnostic pop")                                          \
+    (expression);                                                           \
+    _Pragma("GCC diagnostic pop")                                           \
 })
 
 #else
@@ -39,19 +43,19 @@ _TBS_STMT_WRAPPER()
 #define _TBS_STRUCT_IGNORE_OVERRIDE_EXP(expression)                         \
 ({                                                                          \
     _Pragma("GCC diagnostic push")                                          \
-    _Pragma("GCC diagnostic ignored \"-Wunknown-warning-option\"")                   \
+    _Pragma("GCC diagnostic ignored \"-Wunknown-warning-option\"")          \
     _Pragma("GCC diagnostic ignored \"-Woverride-init\"")                   \
-    _Pragma("GCC diagnostic ignored \"-Winitializer-overrides\"")                   \
-    _Pragma("GCC diagnostic ignored \"-Wgnu-designator\"")                   \
-    (expression);                       \
-    _Pragma("GCC diagnostic pop")                                          \
+    _Pragma("GCC diagnostic ignored \"-Winitializer-overrides\"")           \
+    _Pragma("GCC diagnostic ignored \"-Wgnu-designator\"")                  \
+    (expression);                                                           \
+    _Pragma("GCC diagnostic pop")                                           \
 })
 
 #endif
 
 
 #define _TBS_LABEL(label_name)                                              \
-_TBS_STMT_WRAPPER(                                                       \
+_TBS_STMT_WRAPPER(                                                          \
     label_name:                                                             \
     _TBS_STMT_EMPTY;                                                        \
 )
@@ -66,24 +70,25 @@ _TBS_STMT_WRAPPER(                                                          \
     fflush(file);                                                           \
 )
 
-#define _tbs_log_trace(...)                                     _TBS_LOG_PRINTD(stdout, "TRACE", __VA_ARGS__)
-#define _tbs_log_info(...)                                      _TBS_LOG_PRINTD(stdout, "INFO ", __VA_ARGS__)
-#define _tbs_log_warn(...)                                      _TBS_LOG_PRINTD(stderr, "WARN ", __VA_ARGS__)
-#define _tbs_log_err(...)                                       _TBS_LOG_PRINTD(stderr, "ERROR", __VA_ARGS__)
-#define _tbs_log_fatal(...)                                     _TBS_LOG_PRINTD(stderr, "FATAL", __VA_ARGS__)
+#define _tbs_log_trace(...)                                                 _TBS_LOG_PRINTD(stdout, "TRACE", __VA_ARGS__)
+#define _tbs_log_info(...)                                                  _TBS_LOG_PRINTD(stdout, "INFO ", __VA_ARGS__)
+#define _tbs_log_warn(...)                                                  _TBS_LOG_PRINTD(stderr, "WARN ", __VA_ARGS__)
+#define _tbs_log_err(...)                                                   _TBS_LOG_PRINTD(stderr, "ERROR", __VA_ARGS__)
+#define _tbs_log_fatal(...)                                                 _TBS_LOG_PRINTD(stderr, "FATAL", __VA_ARGS__)
 
 // threading
 
 #define _TBS_EXPRESSION_WITH_ACCESS_COUNT(n, enabled, expression, enter_stmt, exit_stmt, if_disabled_init_stmt) \
-({                                                          \
-    static pthread_mutex_t _TBS_SYM_NAME(n, section_lock) = PTHREAD_MUTEX_INITIALIZER;\
+({                                                                          \
+    static pthread_mutex_t _TBS_SYM_NAME(n, section_lock) =                 \
+        PTHREAD_MUTEX_INITIALIZER;                                          \
     static unsigned int _TBS_SYM_NAME(n, access_count) = 0;                 \
     if (enabled) {                                                          \
         pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));                \
         if (_TBS_SYM_NAME(n, access_count)++ == 0) {                        \
-            enter_stmt;                                                      \
+            enter_stmt;                                                     \
         }                                                                   \
-        pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));                \
+        pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));              \
     } else {                                                                \
         static bool _TBS_SYM_NAME(n, initialized) = false;                  \
         if (!_TBS_SYM_NAME(n, initialized)) {                               \
@@ -92,18 +97,18 @@ _TBS_STMT_WRAPPER(                                                          \
                 _TBS_SYM_NAME(n, initialized) = true;                       \
                 if_disabled_init_stmt;                                      \
             }                                                               \
-            pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));            \
+            pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));          \
         }                                                                   \
     }                                                                       \
-    const __auto_type _TBS_SYM_NAME(n, access_count_res) = (expression);                \
+    const __auto_type _TBS_SYM_NAME(n, access_count_res) = (expression);    \
     if (enabled) {                                                          \
         pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));                \
         if (--_TBS_SYM_NAME(n, access_count) == 0) {                        \
-            exit_stmt;                                                       \
+            exit_stmt;                                                      \
         }                                                                   \
-        pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));                \
+        pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));              \
     }                                                                       \
-    _TBS_SYM_NAME(n, access_count_res);\
+    _TBS_SYM_NAME(n, access_count_res);                                     \
 })
 
 
@@ -155,46 +160,44 @@ _TBS_STRUCT_IGNORE_OVERRIDE_EXP(((_tbs_section_config) {                    \
     __VA_ARGS__                                                             \
 }))
 
-#define _TBS_SECTION_CONFIG_GET(config, key)                                \
-(config.settings ? config.settings->key : config.key)
+#define _TBS_SECTION_CONFIG_GET(config, key)                                (config.settings ? config.settings->key : config.key)
 
 // tbs_enc_macros
 
-#define _TBS_ENC_EXP(n, expression, ...)                                              \
-({                                                          \
+#define _TBS_ENC_EXP(n, expression, ...)                                    \
+({                                                                          \
     const _tbs_section_config _TBS_SYM_NAME(n, config) =                    \
         _TBS_SECTION_CONFIG_DEFAULT(__VA_ARGS__);                           \
-        (void)&&_TBS_SYM_NAME(n, section_start);\
-        (void)&&_TBS_SYM_NAME(n, section_end);\
-    _TBS_EXPRESSION_WITH_ACCESS_COUNT(                                         \
+        (void)&&_TBS_SYM_NAME(n, section_start);                            \
+        (void)&&_TBS_SYM_NAME(n, section_end);                              \
+    _TBS_EXPRESSION_WITH_ACCESS_COUNT(                                      \
         n,                                                                  \
         _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), thread_safe) &&   \
         _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), re_encrypt),      \
-        {                                                  \
+        {                                                                   \
             _TBS_LABEL(_TBS_SYM_NAME(n, section_start));                    \
-            const __auto_type _TBS_SYM_NAME(n, enc_exp_res) = (expression);                                                           \
-            _tbs_log_trace("code done");\
+            const __auto_type _TBS_SYM_NAME(n, enc_exp_res) = (expression); \
+            _tbs_log_trace("code done");                                    \
             _TBS_LABEL(_TBS_SYM_NAME(n, section_end));                      \
-            _TBS_SYM_NAME(n, enc_exp_res);\
+            _TBS_SYM_NAME(n, enc_exp_res);                                  \
         },                                                                  \
         _TBS_STMT_WRAPPER(                                                  \
             /* decrypt */                                                   \
-            _tbs_log_trace("decrypt");\
+            _tbs_log_trace("decrypt");                                      \
         ),                                                                  \
         _TBS_STMT_WRAPPER(                                                  \
             /* encrypt */                                                   \
-            _tbs_log_trace("encrypt");\
+            _tbs_log_trace("encrypt");                                      \
         ),                                                                  \
         _TBS_STMT_WRAPPER(                                                  \
             /* descrypt */                                                  \
-            _tbs_log_trace("init decrypt");\
+            _tbs_log_trace("init decrypt");                                 \
         )                                                                   \
-    );                                                                       \
+    );                                                                      \
 })
 
 
 #define tbs_enc(code, ...)                                                  \
 _TBS_STMT_WRAPPER(_TBS_ENC_EXP(__COUNTER__, ({ _TBS_STMT_WRAPPER(code); NULL; }), __VA_ARGS__))
 
-#define tbs_enc_exp(expression, ...) \
-_TBS_ENC_EXP(__COUNTER__, (expression), __VA_ARGS__)
+#define tbs_enc_exp(expression, ...)                                        _TBS_ENC_EXP(__COUNTER__, (expression), __VA_ARGS__)
