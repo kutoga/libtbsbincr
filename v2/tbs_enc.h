@@ -70,43 +70,63 @@ _TBS_STMT_WRAPPER(                                                          \
     fflush(file);                                                           \
 )
 
+#ifdef _TBS_LOG_ENABLE
 #define _tbs_log_trace(...)                                                 _TBS_LOG_PRINTD(stdout, "TRACE", __VA_ARGS__)
 #define _tbs_log_info(...)                                                  _TBS_LOG_PRINTD(stdout, "INFO ", __VA_ARGS__)
 #define _tbs_log_warn(...)                                                  _TBS_LOG_PRINTD(stderr, "WARN ", __VA_ARGS__)
 #define _tbs_log_err(...)                                                   _TBS_LOG_PRINTD(stderr, "ERROR", __VA_ARGS__)
 #define _tbs_log_fatal(...)                                                 _TBS_LOG_PRINTD(stderr, "FATAL", __VA_ARGS__)
+#else
+#define _tbs_log_trace(...)                                                 _TBS_STMT_EMPTY
+#define _tbs_log_info(...)                                                  _TBS_STMT_EMPTY
+#define _tbs_log_warn(...)                                                  _TBS_STMT_EMPTY
+#define _tbs_log_err(...)                                                   _TBS_STMT_EMPTY
+#define _tbs_log_fatal(...)                                                 _TBS_STMT_EMPTY
+#endif
 
 // threading
 
-#define _TBS_EXPRESSION_WITH_ACCESS_COUNT(n, enabled, expression, enter_stmt, exit_stmt, if_disabled_init_stmt) \
+#define _TBS_EXPRESSION_WITH_ACCESS_COUNT(n, enabled, thread_safe, expression, enter_stmt, exit_stmt, if_disabled_init_stmt) \
 ({                                                                          \
     static pthread_mutex_t _TBS_SYM_NAME(n, section_lock) =                 \
         PTHREAD_MUTEX_INITIALIZER;                                          \
     static unsigned int _TBS_SYM_NAME(n, access_count) = 0;                 \
     if (enabled) {                                                          \
-        pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));                \
+        if (thread_safe) {                                                  \
+            pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));            \
+        }                                                                   \
         if (_TBS_SYM_NAME(n, access_count)++ == 0) {                        \
             enter_stmt;                                                     \
         }                                                                   \
-        pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));              \
+        if (thread_safe) {                                                  \
+            pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));          \
+        }                                                                   \
     } else {                                                                \
         static bool _TBS_SYM_NAME(n, initialized) = false;                  \
         if (!_TBS_SYM_NAME(n, initialized)) {                               \
-            pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));            \
+            if (thread_safe) {                                              \
+                pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));        \
+            }                                                               \
             if (!_TBS_SYM_NAME(n, initialized)) {                           \
                 _TBS_SYM_NAME(n, initialized) = true;                       \
                 if_disabled_init_stmt;                                      \
             }                                                               \
-            pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));          \
+            if (thread_safe) {                                              \
+                pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));      \
+            }                                                               \
         }                                                                   \
     }                                                                       \
     const __auto_type _TBS_SYM_NAME(n, access_count_res) = (expression);    \
     if (enabled) {                                                          \
-        pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));                \
+        if (thread_safe) {                                                  \
+            pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));            \
+        }                                                                   \
         if (--_TBS_SYM_NAME(n, access_count) == 0) {                        \
             exit_stmt;                                                      \
         }                                                                   \
-        pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));              \
+        if (thread_safe) {                                                  \
+            pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));          \
+        }                                                                   \
     }                                                                       \
     _TBS_SYM_NAME(n, access_count_res);                                     \
 })
@@ -115,25 +135,37 @@ _TBS_STMT_WRAPPER(                                                          \
 // keygen
 
 typedef struct t_tbs_keygen {
-    void (*seed)(struct t_tbs_keygen *, int);
-    uint16_t (*next)(struct t_tbs_keygen *);
-    void (*data_cleanup)(struct t_tbs_keygen *);
+    void (*seed)(struct t_tbs_keygen *keygen, int seed);
+    uint16_t (*next)(struct t_tbs_keygen *keygen);
+    void (*data_cleanup)(struct t_tbs_keygen *keygen);
     void *data;
 } tbs_keygen;
 
 tbs_keygen tbs_keygen_default;
+
+// encryption
+
+typedef struct tbs_crypto_algorithm {
+    void (*initalize)(struct tbs_crypto_algorithm *alg);
+    char (*encrypt)(struct tbs_crypto_algorithm *alg, char chr);
+    char (*decrypt)(struct tbs_crypto_algorithm *alg, char chr);
+    void (*data_cleanup)(struct tbs_crypto_algorithm *alg);
+    void *data;
+} tbs_crypto_algorithm;
 
 // config
 
 #define _TBS_CONFIG_ENTRIES                                                 \
     bool thread_safe;                                                       \
     bool re_encrypt;                                                        \
+    bool re_enetrant;                                                       \
     tbs_keygen *keygen;
 
 #define _TBS_CONFIG_DEFAULTS                                                \
     thread_safe:    true,                                                   \
     re_encrypt:     true,                                                   \
-    keygen:         &tbs_keygen_default,                                    \
+    re_enetrant:    true,                                                   \
+    keygen:         &tbs_keygen_default,
 
 typedef struct {
     _TBS_CONFIG_ENTRIES
@@ -172,6 +204,7 @@ _TBS_STRUCT_IGNORE_OVERRIDE_EXP(((_tbs_section_config) {                    \
         (void)&&_TBS_SYM_NAME(n, section_end);                              \
     _TBS_EXPRESSION_WITH_ACCESS_COUNT(                                      \
         n,                                                                  \
+        _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), re_enetrant),     \
         _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), thread_safe) &&   \
         _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), re_encrypt),      \
         {                                                                   \
