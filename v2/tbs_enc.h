@@ -266,6 +266,8 @@ _TBS_STRUCT_IGNORE_OVERRIDE_EXP(((_tbs_section_config) {                    \
 
 #define _TBS_ENC_EXP(n, expression, ...)                                    \
 ({                                                                          \
+    __label__ _TBS_SYM_NAME(n, section_start);                              \
+    __label__ _TBS_SYM_NAME(n, section_end);                                \
     const _tbs_section_config _TBS_SYM_NAME(n, config) =                    \
         _TBS_SECTION_CONFIG_DEFAULT(__VA_ARGS__);                           \
     (void)&&_TBS_SYM_NAME(n, section_start);                                \
