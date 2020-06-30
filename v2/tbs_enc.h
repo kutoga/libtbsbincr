@@ -10,8 +10,6 @@
 
 #define _TBS_STMT_EMPTY                                                     _TBS_STMT_WRAPPER()
 
-#define _TBS_STMT_TO_EXPRESSION(stmt)                                       ({ stmt; NULL; })
-
 #define _TBS_USE_VAR(var)                                                   (void)(var)
 
 #define _TBS_SYM_NAME(n, name)                                             _tbs_ ## n ## __ ## name
