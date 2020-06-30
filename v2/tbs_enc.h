@@ -200,26 +200,27 @@ _TBS_STMT_WRAPPER(                                                          \
 })
 
 
-// keygen
+// random number
 
-typedef struct t_tbs_keygen {
-    void (*seed)(struct t_tbs_keygen *keygen, int seed);
-    uint16_t (*next)(struct t_tbs_keygen *keygen);
-    void (*data_cleanup)(struct t_tbs_keygen *keygen);
+typedef struct tbs_random {
+    int (*next)(struct tbs_random *rand);
+    void (*data_cleanup)(struct tbs_random *rand);
     void *data;
-} tbs_keygen;
+} tbs_random;
 
-tbs_keygen tbs_keygen_default;
+tbs_random tbs_random_time_based;
 
 // encryption
 
 typedef struct tbs_crypto_algorithm {
-    void (*initalize)(struct tbs_crypto_algorithm *alg);
+    void (*initalize)(struct tbs_crypto_algorithm *alg, int key);
     char (*encrypt)(struct tbs_crypto_algorithm *alg, char chr);
     char (*decrypt)(struct tbs_crypto_algorithm *alg, char chr);
     void (*data_cleanup)(struct tbs_crypto_algorithm *alg);
     void *data;
 } tbs_crypto_algorithm;
+
+tbs_crypto_algorithm tbs_crypto_algorithm_simple;
 
 // config
 
@@ -227,13 +228,15 @@ typedef struct tbs_crypto_algorithm {
     constness_modifier bool thread_safe;                                    \
     constness_modifier bool re_encrypt;                                     \
     constness_modifier bool re_enetrant;                                    \
-    tbs_keygen *constness_modifier keygen;
+    tbs_random *constness_modifier keygen;                                  \
+    tbs_crypto_algorithm *constness_modifier crypto_algorithm;
 
 #define _TBS_CONFIG_DEFAULTS                                                \
-    thread_safe:    true,                                                   \
-    re_encrypt:     true,                                                   \
-    re_enetrant:    true,                                                   \
-    keygen:         &tbs_keygen_default,
+    thread_safe:      true,                                                 \
+    re_encrypt:       true,                                                 \
+    re_enetrant:      true,                                                 \
+    keygen:           &tbs_random_time_based,                               \
+    crypto_algorithm: &tbs_crypto_algorithm_simple,
 
 typedef struct tbs_config {
     _TBS_CONFIG_ENTRIES()
