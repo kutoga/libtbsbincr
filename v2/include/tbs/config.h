@@ -1,7 +1,10 @@
 #ifndef __TBS_CONFIG_H__
 #define __TBS_CONFIG_H__
 
+#include <stdlib.h>
+#include <stdbool.h>
 #include "common.h"
+#include "crypto_algorithm.h"
 
 /*
  * struct attributes for tbs_config

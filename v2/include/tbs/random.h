@@ -7,6 +7,6 @@ typedef struct tbs_random {
     void *data;
 } tbs_random;
 
-tbs_random tbs_random_time_based;
+extern tbs_random tbs_random_time_based;
 
 #endif

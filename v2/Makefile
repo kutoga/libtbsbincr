@@ -1,4 +1,4 @@
-CPPFLAGS=-Wall -Wextra -Werror -O3 -fPIC
+CPPFLAGS=-Wall -Wextra -Werror -O3 -fPIC -I include
 CFLAGS=-std=c11
 
 # Enable logging
