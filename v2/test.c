@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <tbsenc.h>
 
+// TODO: For nested code: if the code outside is already threadsafe, the inner code does not need to lock again.
+
 int main() {
     tbs_enc({
         printf("hey\n");

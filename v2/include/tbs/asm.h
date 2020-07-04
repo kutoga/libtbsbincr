@@ -3,8 +3,8 @@
 
 #include "common.h"
 
-static inline void __attribute__((always_inline)) _TBS_ENC_HEAD() {
-    _TBS_DISABLE_OPTIMIZATIONS({
+_TBS_DISABLE_OPTIMIZATIONS(
+    static inline void __attribute__((always_inline)) _tbs_enc_head() {
         __asm__ __volatile__(
 #if __x86_64__
             ".code64\n\t"
@@ -22,12 +22,12 @@ static inline void __attribute__((always_inline)) _TBS_ENC_HEAD() {
             "pop %eax\n\t"
 #endif
         );
-    });
-}
+    }
+)
 
 
-static inline void __attribute__((always_inline)) TBS_ENC_FOOT() {
-    _TBS_DISABLE_OPTIMIZATIONS({
+_TBS_DISABLE_OPTIMIZATIONS(
+    static inline void __attribute__((always_inline)) _tbs_enc_foot() {
         __asm__ __volatile__(
 #if __x86_64__
             ".code64\n\t"
@@ -45,8 +45,8 @@ static inline void __attribute__((always_inline)) TBS_ENC_FOOT() {
             "pop %ebx\n\t"
 #endif
         );
-    });
-}
+    }
+)
 
 
 /*
