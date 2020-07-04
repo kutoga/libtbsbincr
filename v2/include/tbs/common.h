@@ -84,4 +84,15 @@ _TBS_STMT_WRAPPER(                                                          \
 
 #endif
 
+/*
+ * Disable optimizations for a piece of code.
+ */
+#define _TBS_DISABLE_OPTIMIZATIONS(code)                                    \
+_TBS_STMT_WRAPPER(                                                          \
+    _Pragma("GCC push_options")                                             \
+    _Pragam("GCC optimize (O0)")                                            \
+    code;                                                                   \
+    _Pragma("GCC pop_options")                                              \
+)
+
 #endif
