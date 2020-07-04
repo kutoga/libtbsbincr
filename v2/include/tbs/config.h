@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "common.h"
+#include "random.h"
 #include "crypto_algorithm.h"
 
 /*
@@ -14,7 +15,7 @@
     constness_modifier bool re_encrypt;                                     \
     constness_modifier bool re_enetrant;                                    \
     tbs_random *constness_modifier keygen;                                  \
-    tbs_crypto_algorithm *constness_modifier crypto_algorithm;
+    tbs_crypto_algorithm_initializer constness_modifier crypto_algorithm_init;
 
 /*
  * Default values for tbs_config
@@ -24,7 +25,7 @@
     re_encrypt:       true,                                                 \
     re_enetrant:      true,                                                 \
     keygen:           &tbs_random_time_based,                               \
-    crypto_algorithm: &tbs_crypto_algorithm_simple,
+    crypto_algorithm_init: tbs_crypto_algorithm_simple_init,
 
 typedef struct tbs_config {
     _TBS_CONFIG_ENTRIES()
