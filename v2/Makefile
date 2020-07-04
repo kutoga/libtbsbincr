@@ -11,7 +11,7 @@ OFILES=$(CFILES:.c=.o)
 
 DEP=.dep
 
-TARGETS=libtbsenc.a
+TARGETS=libtbsenc.a test
 
 .PHONY: all clean
 .SECONDARY:
@@ -37,6 +37,6 @@ clean:
 	@mkdir -p $(@D)
 	$(AR) crfsT $@ $^
 
-test: test.c libtbsenc.a
+test: test.o libtbsenc.a
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ -o $@
 
