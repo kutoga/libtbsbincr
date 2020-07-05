@@ -48,3 +48,15 @@ TEST(tbs_enc_foot, op_code) {
     ASSERT_GE(opcode_len, _TBS_ENC_FOOT_LEN);
     ASSERT_TRUE(!memcmp(opcode_bytes, tbs_enc_foot_opcode, _TBS_ENC_FOOT_LEN));
 }
+
+
+TEST(tbs_avoid_label_optimizations, overhead) {
+    CODE_START_MARKER;
+    _TBS_AVOID_LABEL_OPTIMIZATIONS();
+    CODE_END_MARKER;
+
+    size_t overhead = CODE_LEN;
+
+    ASSERT_GT(overhead, 0) << "The avoid label optimizations should create some overhead";
+    ASSERT_LT(overhead, 20) << "The overhead should be less than 20 bytes";
+}
