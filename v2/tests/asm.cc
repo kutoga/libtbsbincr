@@ -8,17 +8,17 @@
 #define CODE_LEN                                        ((const char *)&&_code_end - (const char *)&&_code_start)
 
 
-TEST(_tbs_enc_head, head_enc_len) {
+TEST(tbs_enc_head, head_enc_len) {
     const unsigned char tbs_enc_head_opcode[] = _TBS_ENC_HEAD_OPCODE;
 
     ASSERT_EQ(_TBS_ARR_LEN(tbs_enc_head_opcode), _TBS_ENC_HEAD_LEN);
 }
 
 
-TEST(_tbs_enc_head, op_code) {
+TEST(tbs_enc_head, op_code) {
     const unsigned char tbs_enc_head_opcode[] = _TBS_ENC_HEAD_OPCODE;
     CODE_START_MARKER;
-    _tbs_enc_head();
+    _TBS_ENC_HEAD;
     CODE_END_MARKER;
 
     const char *opcode_bytes = CODE_BYTES;
@@ -29,17 +29,17 @@ TEST(_tbs_enc_head, op_code) {
 }
 
 
-TEST(_tbs_enc_foot, foot_enc_len) {
+TEST(tbs_enc_foot, foot_enc_len) {
     const unsigned char tbs_enc_foot_opcode[] = _TBS_ENC_FOOT_OPCODE;
 
     ASSERT_EQ(_TBS_ARR_LEN(tbs_enc_foot_opcode), _TBS_ENC_FOOT_LEN);
 }
 
 
-TEST(_tbs_enc_foot, op_code) {
+TEST(tbs_enc_foot, op_code) {
     const unsigned char tbs_enc_foot_opcode[] = _TBS_ENC_FOOT_OPCODE;
     CODE_START_MARKER;
-    _tbs_enc_foot();
+    _TBS_ENC_FOOT;
     CODE_END_MARKER;
 
     const char *opcode_bytes = CODE_BYTES;
