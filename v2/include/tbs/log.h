@@ -1,6 +1,10 @@
 #ifndef __TBS_LOG_H__
 #define __TBS_LOG_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "common.h"
 
 #define _TBS_LOG_PRINTD(file, level, ...)                                   \
@@ -23,6 +27,10 @@ _TBS_STMT_WRAPPER(                                                          \
 #define _tbs_log_warn(...)                                                  _TBS_STMT_EMPTY
 #define _tbs_log_err(...)                                                   _TBS_STMT_EMPTY
 #define _tbs_log_fatal(...)                                                 _TBS_STMT_EMPTY
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

@@ -1,6 +1,10 @@
 #ifndef __TBS_COMMON_H__
 #define __TBS_COMMON_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * Wrap a piece of code into a statement. Mostly used to avoid writing
  * all the time "do { ... } while (0)"
@@ -21,7 +25,9 @@
  * Generate a symbol name: Use a given number, an identifier
  * and create a likely unique name.
  */
-#define _TBS_SYM_NAME(n, name)                                             _tbs_ ## n ## __ ## name
+#define _TBS_SYM_NAME(n, name)                                              _tbs_ ## n ## __ ## name
+
+#define _TBS_ARR_LEN(arr)                                                   (sizeof(arr) / sizeof((arr)[0]))
 
 /*
  * Is the current compiler GCC?
@@ -92,5 +98,15 @@ _Pragma("GCC push_options")                                                 \
 _Pragma("GCC optimize (\"O0\")")                                                \
 code                                                                        \
 _Pragma("GCC pop_options")                                                  \
+
+#ifdef _TBS_IS_GCC
+#define _TBS_DISABLE_OPTIMIZATIONS_ATTR                          __attribute__((optimize("O0")))
+#else
+#define _TBS_DISABLE_OPTIMIZATIONS_ATTR                          __attribute__((optnone))
+#endif
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

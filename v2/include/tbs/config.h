@@ -1,6 +1,10 @@
 #ifndef __TBS_CONFIG_H__
 #define __TBS_CONFIG_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include <stdbool.h>
 #include "common.h"
@@ -59,5 +63,9 @@ _TBS_STRUCT_IGNORE_OVERRIDE_EXP(((_tbs_section_config) {                    \
 }))
 
 #define _TBS_SECTION_CONFIG_GET(config, key)                                (config.settings ? config.settings->key : config.key)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

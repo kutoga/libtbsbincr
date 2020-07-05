@@ -1,5 +1,6 @@
 CPPFLAGS=-Wall -Wextra -Werror -O3 -fPIC -I include
-CFLAGS=-std=c11
+CFLAGS=-std=gnu11
+CXXFLAGS=-std=gnu++17
 
 # Enable logging
 CFLAGS += -DTBS_LOG_ENABLE
@@ -9,11 +10,14 @@ LDFLAGS:=-lm
 CFILES=$(shell find src -name '*.c')
 OFILES=$(CFILES:.c=.o)
 
+TEST_CPPFILES=$(shell find tests -name '*.cc')
+TEST_OFILES=$(TEST_CPPFILES:.cc=.o)
+
 DEP=.dep
 
 TARGETS=libtbsenc.a test
 
-.PHONY: all clean
+.PHONY: all clean check
 .SECONDARY:
 
 all: $(TARGETS)
@@ -26,12 +30,17 @@ DEP_FILES:=$(shell [ -d '$(DEP)' ] && find $(DEP) -name '*.d')
 -include $(DEP_FILES)
 
 clean:
-	$(RM) -r $(find src -name '*.o') $(TARGETS) $(OFILES) $(DEP)
+	$(RM) -r $(find src -name '*.o') $(TARGETS) $(OFILES) $(TEST_OFILES) $(DEP) tests/main
 
 %.o: %.c
 	@mkdir -p $(DEP)/$(dir $<)
 	@$(CC) $(CFLAGS) $(CPPFLAGS) -MM -MT '$@' $< > $(DEP)/$<.d
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ -c $<
+
+%.o: %.cc
+	@mkdir -p $(DEP)/$(dir $<)
+	@$(CXX) $(CXXFLAGS) $(CPPFLAGS) -MM -MT '$@' $< > $(DEP)/$<.d
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ -c $<
 
 %.a: $(OFILES)
 	@mkdir -p $(@D)
@@ -39,4 +48,10 @@ clean:
 
 test: test.o libtbsenc.a
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ -o $@
+
+tests/main: $(TEST_OFILES) libtbsenc.a
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $^ -lgtest -lpthread -o $@
+
+check: tests/main
+	./$<
 

@@ -1,6 +1,10 @@
 #ifndef __TBS_ENC_H__
 #define __TBS_ENC_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <pthread.h>
 #include "common.h"
 #include "config.h"
@@ -156,6 +160,10 @@ _TBS_STMT_WRAPPER(_TBS_ENC_EXP(__COUNTER__, ({                              \
 #define tbs_enc(code, ...)                                                  _TBS_STMT_WRAPPER(code)
 #define tbs_enc_exp(expression, ...)                                        (expression)
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif
