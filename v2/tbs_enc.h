@@ -127,7 +127,7 @@ _TBS_STMT_WRAPPER(                                                          \
         pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));                \
         prepare_stmt;                                                       \
     }                                                                       \
-    const __auto_type _TBS_SYM_NAME(n, protected_exp_res) = (expression);   \
+    const _tbs_auto_type _TBS_SYM_NAME(n, protected_exp_res) = (expression);   \
     if (auto_reset) {                                                       \
         if (re_enetrant) {                                                  \
             if (thread_safe) {                                              \
@@ -182,7 +182,7 @@ _TBS_STMT_WRAPPER(                                                          \
             }                                                               \
         }                                                                   \
     }                                                                       \
-    const __auto_type _TBS_SYM_NAME(n, access_count_res) = (expression);    \
+    const _tbs_auto_type _TBS_SYM_NAME(n, access_count_res) = (expression);    \
     if (enabled) {                                                          \
         if (thread_safe) {                                                  \
             pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));            \
@@ -277,7 +277,7 @@ _TBS_STRUCT_IGNORE_OVERRIDE_EXP(((_tbs_section_config) {                    \
         n,                                                                  \
         ({                                                                  \
             _TBS_LABEL(_TBS_SYM_NAME(n, section_start));                    \
-            const __auto_type _TBS_SYM_NAME(n, enc_exp_res) = (expression); \
+            const _tbs_auto_type _TBS_SYM_NAME(n, enc_exp_res) = (expression); \
             _tbs_log_trace("code done");                                    \
             _TBS_LABEL(_TBS_SYM_NAME(n, section_end));                      \
             _TBS_SYM_NAME(n, enc_exp_res);                                  \
