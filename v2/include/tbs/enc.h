@@ -7,8 +7,9 @@ extern "C" {
 
 #include <pthread.h>
 #include "common.h"
-#include "config.h"
 #include "log.h"
+#include "config.h"
+#include "asm.h"
 
 /*
  * Define an expression which is protected. This means before it is
@@ -123,9 +124,14 @@ extern "C" {
         n,                                                                  \
         ({                                                                  \
             _TBS_LABEL(_TBS_SYM_NAME(n, section_start));                    \
+            _TBS_ENC_HEAD;                                                  \
+                                                                            \
             const __auto_type _TBS_SYM_NAME(n, enc_exp_res) = (expression); \
             _tbs_log_trace("code done");                                    \
+                                                                            \
             _TBS_LABEL(_TBS_SYM_NAME(n, section_end));                      \
+            _TBS_ENC_FOOT;                                                  \
+                                                                            \
             _TBS_SYM_NAME(n, enc_exp_res);                                  \
         }),                                                                 \
         _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), re_enetrant),     \
