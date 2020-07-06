@@ -3,7 +3,7 @@ CFLAGS=-std=gnu11
 CXXFLAGS=-std=gnu++17
 
 # Enable logging
-CFLAGS += -DTBS_LOG_ENABLE
+CPPFLAGS += -DTBS_LOG_ENABLE
 
 LDFLAGS:=-lm
 
@@ -11,7 +11,8 @@ CFILES=$(shell find src -name '*.c')
 OFILES=$(CFILES:.c=.o)
 
 TEST_CPPFILES=$(shell find tests -name '*.cc')
-TEST_OFILES=$(TEST_CPPFILES:.cc=.o)
+TEST_CFILES=$(shell find tests -name '*.c')
+TEST_OFILES=$(TEST_CPPFILES:.cc=.o) $(TEST_CFILES:.c=.o)
 
 DEP=.dep
 
