@@ -24,8 +24,15 @@ extern const volatile int _tbs_asm_always_zero;
  * 
  * Without this dummy loop which accesses a volatile variable
  * it can (and will) happen that the address of "start" equals
- * the address of "end". I don't know why, but the loop is a
- * solution without much overhead.
+ * the address of "end". This is due to optimizations done by
+ * the compiler (moving the label is allowed if not goto is
+ * available).
+ * 
+ * There is another solution which unfortunately only works
+ * with new compilers:
+ * https://stackoverflow.com/a/62757612/916672
+ * asm goto(""::::label_name)
+ * |-> This uses the label and avoids that the label is moved.
  */
 #define _TBS_AVOID_LABEL_OPTIMIZATIONS(code)            \
 _TBS_STMT_WRAPPER(do {                                  \
