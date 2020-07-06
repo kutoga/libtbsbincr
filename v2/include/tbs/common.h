@@ -59,6 +59,9 @@ _TBS_STMT_WRAPPER(                                                          \
  */
 #ifdef _TBS_IS_GCC
 
+#ifdef __cplusplus
+#define _TBS_STRUCT_IGNORE_OVERRIDE_EXP(expression)                         (expression)
+#else
 /*
  * gcc (at least v7.5) has buggy behaviour with the more general
  * _Pragma version that works with gcc and clang. In situations where
@@ -74,6 +77,7 @@ _TBS_STMT_WRAPPER(                                                          \
     (expression);                                                           \
     _Pragma("GCC diagnostic pop")                                           \
 })
+#endif
 
 #else
 

@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#include <stdio.h>
 #include "common.h"
 
 #define _TBS_LOG_PRINTD(file, level, ...)                                   \
