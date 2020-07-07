@@ -102,6 +102,9 @@ extern "C" {
     _TBS_SYM_NAME(n, protected_exp_res);                                    \
 })
 
+void _tbs_enc_encrypt(const char *section_start, const char *section_end, tbs_random *random, tbs_crypto_algorithm_initializer crypto_algorithm_init);
+
+void _tbs_enc_decrypt(const char *section_start, const char *section_end);
 
 /*
  * Encrypt a given expression.
@@ -138,12 +141,20 @@ extern "C" {
         _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), thread_safe),     \
         _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), re_encrypt),      \
         _TBS_STMT_WRAPPER(                                                  \
-            /* decrypt */                                                   \
-            _tbs_log_trace("decrypt");                                      \
+            _tbs_enc_decrypt(                                               \
+                (const char *)                                              \
+                &&_TBS_SYM_NAME(n, section_start),                          \
+                (const char *)                                              \
+                &&_TBS_SYM_NAME(n, section_end));                           \
         ),                                                                  \
         _TBS_STMT_WRAPPER(                                                  \
-            /* encrypt */                                                   \
-            _tbs_log_trace("encrypt");                                      \
+            _tbs_enc_encrypt(                                               \
+                (const char *)                                              \
+                &&_TBS_SYM_NAME(n, section_start),                          \
+                (const char *)                                              \
+                &&_TBS_SYM_NAME(n, section_end),                            \
+                _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), keygen),  \
+                _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), crypto_algorithm_init)); \
         )                                                                   \
     );                                                                      \
 })
