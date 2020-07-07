@@ -113,23 +113,6 @@ static inline bool test_tbs_enc_exp_mixed_statements() {
 }
 
 
-static inline int test_tbs_enc_exp_return_in_statement_f(int a, int b) {
-    tbs_enc({
-        return a * b;
-    });
-}
-
-
-static inline bool test_tbs_enc_exp_return_in_statement() {
-    const int a = 1;
-    const int b = 2;
-
-    const int res = test_tbs_enc_exp_return_in_statement_f(a, b);
-
-    return res == 2;
-}
-
-
 #ifdef __cplusplus
 }
 #endif

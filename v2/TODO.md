@@ -11,3 +11,5 @@ int y = tbs_enc_exp(x * x, _.thread_safe=false, _.re_encrypt=false);
 ```
 
 This is not as nice, but it works well with C and C++.
+
+There must not be any returns in encrypted code sections. also gotos out of such a region are undefined.

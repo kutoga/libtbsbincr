@@ -21,8 +21,6 @@ bool test_c_tbs_enc_exp_nested_statements();
 
 bool test_c_tbs_enc_exp_mixed_statements();
 
-bool test_c_tbs_enc_exp_return_in_statement();
-
 #ifdef __cplusplus
 }
 #endif

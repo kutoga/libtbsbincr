@@ -28,7 +28,3 @@ bool test_c_tbs_enc_exp_nested_statements() {
 bool test_c_tbs_enc_exp_mixed_statements() {
     return test_tbs_enc_exp_mixed_statements();
 }
-
-bool test_c_tbs_enc_exp_return_in_statement() {
-    return test_tbs_enc_exp_return_in_statement();
-}
