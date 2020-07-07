@@ -9,6 +9,20 @@ extern "C" {
 
 bool test_c_tbs_enc_exp_single_expression();
 
+bool test_c_tbs_enc_exp_multiple_expressions();
+
+bool test_c_tbs_enc_exp_nested_expressions();
+
+bool test_c_tbs_enc_exp_single_statement();
+
+bool test_c_tbs_enc_exp_multiple_statements();
+
+bool test_c_tbs_enc_exp_nested_statements();
+
+bool test_c_tbs_enc_exp_mixed_statements();
+
+bool test_c_tbs_enc_exp_return_in_statement();
+
 #ifdef __cplusplus
 }
 #endif

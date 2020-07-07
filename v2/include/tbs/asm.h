@@ -16,7 +16,7 @@ extern const volatile int _tbs_asm_always_zero;
 /*
  * Assume you have the following code:
  * start:
- * __asm__ __volatile__ (
+ * asm volatile (
  *     ...
  * )
  * end:
@@ -42,8 +42,7 @@ _TBS_STMT_WRAPPER(do {                                  \
 #ifdef __x86_64__
 
 #define _TBS_ENC_HEAD_ASM                               \
-__asm__ __volatile__(                                   \
-    ".code64\n\t"                                       \
+asm volatile(                                   \
     "push %rax\n\t"                                     \
     "push %rax\n\t"                                     \
     "nop\n\t"                                           \
@@ -52,8 +51,7 @@ __asm__ __volatile__(                                   \
 )
 
 #define _TBS_ENC_FOOT_ASM                               \
-__asm__ __volatile__(                                   \
-    ".code64\n\t"                                       \
+asm volatile(                                   \
     "push %rbx\n\t"                                     \
     "push %rbx\n\t"                                     \
     "nop\n\t"                                           \
@@ -64,8 +62,7 @@ __asm__ __volatile__(                                   \
 #else
 
 #define _TBS_ENC_HEAD_ASM                               \
-__asm__ __volatile__(                                   \
-    ".code32\n\t"                                       \
+asm volatile(                                   \
     "push %rax\n\t"                                     \
     "push %rax\n\t"                                     \
     "nop\n\t"                                           \
@@ -74,8 +71,7 @@ __asm__ __volatile__(                                   \
 )
 
 #define _TBS_ENC_FOOT_ASM                               \
-__asm__ __volatile__(                                   \
-    ".code32\n\t"                                       \
+asm volatile(                                   \
     "push %ebx\n\t"                                     \
     "push %ebx\n\t"                                     \
     "nop\n\t"                                           \
