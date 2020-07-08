@@ -15,8 +15,8 @@ _TBS_STMT_WRAPPER(                                                              
     fprintf(_tbs_fh, "[%30s:%-4d] [%25s] ", __FILE__, __LINE__, __FUNCTION__);  \
     fprintf(_tbs_fh, level ": " __VA_ARGS__);                                   \
     fputc('\n', _tbs_fh);                                                       \
-    fflush(_tbs_fh);                                                            \
     funlockfile(_tbs_fh);                                                       \
+    fflush(_tbs_fh);                                                            \
 )
 
 #ifdef TBS_LOG_ENABLE
