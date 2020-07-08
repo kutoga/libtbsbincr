@@ -6,7 +6,7 @@
 int main() {
     tbs_enc({
         printf("hey\n");
-    }, re_encrypt: false);
+    }, _.re_encrypt=false);
 
     // int a = tbs_enc_exp(1) + tbs_enc_exp(2); // + tbs_enc_exp(2 * tbs_enc_exp(3)));
     // printf("%d\n", a);

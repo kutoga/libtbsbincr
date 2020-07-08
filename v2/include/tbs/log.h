@@ -8,12 +8,15 @@ extern "C" {
 #include <stdio.h>
 #include "common.h"
 
-#define _TBS_LOG_PRINTD(file, level, ...)                                   \
-_TBS_STMT_WRAPPER(                                                          \
-    fprintf((file), "[%30s:%-4d] [%25s] ", __FILE__, __LINE__, __FUNCTION__);\
-    fprintf((file), level ": " __VA_ARGS__);                                \
-    fputc('\n', (file));                                                    \
-    fflush(file);                                                           \
+#define _TBS_LOG_PRINTD(file, level, ...)                                       \
+_TBS_STMT_WRAPPER(                                                              \
+    FILE *_tbs_fh = (file);                                                     \
+    flockfile(_tbs_fh);                                                         \
+    fprintf(_tbs_fh, "[%30s:%-4d] [%25s] ", __FILE__, __LINE__, __FUNCTION__);  \
+    fprintf(_tbs_fh, level ": " __VA_ARGS__);                                   \
+    fputc('\n', _tbs_fh);                                                       \
+    fflush(_tbs_fh);                                                            \
+    funlockfile(_tbs_fh);                                                       \
 )
 
 #ifdef TBS_LOG_ENABLE
