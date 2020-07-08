@@ -11,6 +11,8 @@ typedef struct tbs_random {
     void *data;
 } tbs_random;
 
+// TODO: Data cleanup zu cleanup umbenennen
+
 extern tbs_random tbs_random_time_based;
 
 #ifdef __cplusplus

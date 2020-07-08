@@ -102,9 +102,9 @@ extern "C" {
     _TBS_SYM_NAME(n, protected_exp_res);                                    \
 })
 
-void _tbs_enc_encrypt(const char *section_start, const char *section_end, tbs_random *random, tbs_crypto_algorithm_initializer crypto_algorithm_init);
+bool _tbs_enc_encrypt(char *section_head, char *section_foot, tbs_random *random, tbs_crypto_algorithm_initializer crypto_algorithm_init);
 
-void _tbs_enc_decrypt(const char *section_start, const char *section_end);
+bool _tbs_enc_decrypt(char *section_head, char *section_foot);
 
 /*
  * Encrypt a given expression.
@@ -142,17 +142,13 @@ void _tbs_enc_decrypt(const char *section_start, const char *section_end);
         _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), re_encrypt),      \
         _TBS_STMT_WRAPPER(                                                  \
             _tbs_enc_decrypt(                                               \
-                (const char *)                                              \
-                &&_TBS_SYM_NAME(n, section_start),                          \
-                (const char *)                                              \
-                &&_TBS_SYM_NAME(n, section_end));                           \
+                (char *)&&_TBS_SYM_NAME(n, section_start),                          \
+                (char *)&&_TBS_SYM_NAME(n, section_end));                           \
         ),                                                                  \
         _TBS_STMT_WRAPPER(                                                  \
             _tbs_enc_encrypt(                                               \
-                (const char *)                                              \
-                &&_TBS_SYM_NAME(n, section_start),                          \
-                (const char *)                                              \
-                &&_TBS_SYM_NAME(n, section_end),                            \
+                (char *)&&_TBS_SYM_NAME(n, section_start),                          \
+                (char *)&&_TBS_SYM_NAME(n, section_end),                            \
                 _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), keygen),  \
                 _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), crypto_algorithm_init)); \
         )                                                                   \
