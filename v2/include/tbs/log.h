@@ -6,16 +6,25 @@ extern "C" {
 #endif
 
 #include <stdio.h>
+#include "platform.h"
 #include "common.h"
+
+#ifdef _TBS_IS_LINUX
+#define _TBS_LOCK_FILE(fh)                                                      flockfile(fh)
+#define _TBS_UNLOCK_FILE(fh)                                                    funlockfile(fh)
+#else
+#define _TBS_LOCK_FILE                                                          _lock_file
+#define _TBS_UNLOCK_FILE                                                        _unlock_file
+#endif
 
 #define _TBS_LOG_PRINTD(file, level, ...)                                       \
 _TBS_STMT_WRAPPER(                                                              \
     FILE *_tbs_fh = (file);                                                     \
-    flockfile(_tbs_fh);                                                         \
+    _TBS_LOCK_FILE(_tbs_fh);                                                    \
     fprintf(_tbs_fh, "[%30s:%-4d] [%25s] ", __FILE__, __LINE__, __FUNCTION__);  \
     fprintf(_tbs_fh, level ": " __VA_ARGS__);                                   \
     fputc('\n', _tbs_fh);                                                       \
-    funlockfile(_tbs_fh);                                                       \
+    _TBS_UNLOCK_FILE(_tbs_fh);                                                  \
     fflush(_tbs_fh);                                                            \
 )
 
