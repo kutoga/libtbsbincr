@@ -104,7 +104,7 @@ extern "C" {
 
 bool _tbs_enc_encrypt(char *section_head, char *section_foot, tbs_random *random, tbs_crypto_algorithm_initializer crypto_algorithm_init);
 
-bool _tbs_enc_decrypt(char *section_head, char *section_foot);
+bool _tbs_enc_decrypt(char *section_head, char *section_foot, tbs_crypto_algorithm_initializer crypto_algorithm_init);
 
 /*
  * Encrypt a given expression.
@@ -143,7 +143,8 @@ bool _tbs_enc_decrypt(char *section_head, char *section_foot);
         _TBS_STMT_WRAPPER(                                                  \
             _tbs_enc_decrypt(                                               \
                 (char *)&&_TBS_SYM_NAME(n, section_start),                          \
-                (char *)&&_TBS_SYM_NAME(n, section_end));                           \
+                (char *)&&_TBS_SYM_NAME(n, section_end),                           \
+                _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), crypto_algorithm_init)); \
         ),                                                                  \
         _TBS_STMT_WRAPPER(                                                  \
             _tbs_enc_encrypt(                                               \

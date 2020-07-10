@@ -115,7 +115,6 @@ _Pragma("GCC pop_options")                                                  \
 #define _tbs_auto_type                                                      __auto_type
 #endif
 
-
 #ifdef __cplusplus
 }
 #endif
