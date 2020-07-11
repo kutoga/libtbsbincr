@@ -123,6 +123,10 @@ _TBS_AVOID_LABEL_OPTIMIZATIONS(_TBS_ENC_FOOT_ASM)
 #define _TBS_ENC_FOOT_OPCODE                                { 0x53, 0x5B, 0x53, 0x90, 0x5B, 0x53, 0x5B }
 #define _TBS_ENC_FOOT_LEN                                   _TBS_ARR_LEN((const unsigned char[])_TBS_ENC_FOOT_OPCODE)
 
+const unsigned char *_tbs_find__head(const char *start, const char *end);
+
+
+
 #ifdef __cplusplus
 }
 #endif

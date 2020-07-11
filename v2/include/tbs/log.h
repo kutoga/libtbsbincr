@@ -30,19 +30,20 @@ _TBS_STMT_WRAPPER(                                                              
 
 #ifdef TBS_LOG_ENABLE
 #include <stdlib.h>
+#include <string.h>
 
 #define _tbs_log_trace(...)                                                     _TBS_LOG_PRINTD(stdout, "TRACE", __VA_ARGS__)
 #define _tbs_log_info(...)                                                      _TBS_LOG_PRINTD(stdout, "INFO ", __VA_ARGS__)
 #define _tbs_log_warn(...)                                                      _TBS_LOG_PRINTD(stderr, "WARN ", __VA_ARGS__)
-#define _tbs_log_err(...)                                                       _TBS_LOG_PRINTD(stderr, "ERROR", __VA_ARGS__)
+#define _tbs_log_error(...)                                                     _TBS_LOG_PRINTD(stderr, "ERROR", __VA_ARGS__)
 #define _tbs_log_fatal(...)                                                     _TBS_LOG_PRINTD(stderr, "FATAL", __VA_ARGS__)
 
 #define _tbs_log_stringify_memory(memory_start, memory_length, var_name, code)  \
 _TBS_STMT_WRAPPER({                                                             \
-    char *var_name = malloc((memory_length) * 2 + 3);                           \
-    sprintf(var_name, "0x");                                                    \
-    for (size_t i = 0; i < (memory_length); ++i) {                                   \
-        sprintf(&var_name[2 * i + 2], "%02X", (memory_start)[i]);               \
+    const size_t _tbs_size_per_char = strlen("0xFF ");                          \
+    char *var_name = malloc((memory_length) * _tbs_size_per_char + 1);                           \
+    for (int i = 0; i < (int)(memory_length); ++i) {                                   \
+        sprintf(&var_name[_tbs_size_per_char * i], "0x%02X ", (unsigned char)(memory_start)[i]);               \
     }                                                                           \
     code;                                                                       \
     free(var_name);                                                             \
@@ -52,7 +53,7 @@ _TBS_STMT_WRAPPER({                                                             
 #define _tbs_log_trace(...)                                                     _TBS_STMT_EMPTY
 #define _tbs_log_info(...)                                                      _TBS_STMT_EMPTY
 #define _tbs_log_warn(...)                                                      _TBS_STMT_EMPTY
-#define _tbs_log_err(...)                                                       _TBS_STMT_EMPTY
+#define _tbs_log_error(...)                                                     _TBS_STMT_EMPTY
 #define _tbs_log_fatal(...)                                                     _TBS_STMT_EMPTY
 
 #define _tbs_log_stringify_memory(memory_start, memory_length, var_name, code)  _TBS_STMT_EMPTY

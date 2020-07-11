@@ -72,13 +72,13 @@ _TBS_STMT_WRAPPER(                                                          \
 #define _tbs_log_trace(...)                                                 _TBS_LOG_PRINTD(stdout, "TRACE", __VA_ARGS__)
 #define _tbs_log_info(...)                                                  _TBS_LOG_PRINTD(stdout, "INFO ", __VA_ARGS__)
 #define _tbs_log_warn(...)                                                  _TBS_LOG_PRINTD(stderr, "WARN ", __VA_ARGS__)
-#define _tbs_log_err(...)                                                   _TBS_LOG_PRINTD(stderr, "ERROR", __VA_ARGS__)
+#define _tbs_log_error(...)                                                 _TBS_LOG_PRINTD(stderr, "ERROR", __VA_ARGS__)
 #define _tbs_log_fatal(...)                                                 _TBS_LOG_PRINTD(stderr, "FATAL", __VA_ARGS__)
 #else
 #define _tbs_log_trace(...)                                                 _TBS_STMT_EMPTY
 #define _tbs_log_info(...)                                                  _TBS_STMT_EMPTY
 #define _tbs_log_warn(...)                                                  _TBS_STMT_EMPTY
-#define _tbs_log_err(...)                                                   _TBS_STMT_EMPTY
+#define _tbs_log_error(...)                                                 _TBS_STMT_EMPTY
 #define _tbs_log_fatal(...)                                                 _TBS_STMT_EMPTY
 #endif
 

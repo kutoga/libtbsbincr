@@ -102,9 +102,19 @@ extern "C" {
     _TBS_SYM_NAME(n, protected_exp_res);                                    \
 })
 
-bool _tbs_enc_encrypt(char *section_head, char *section_foot, tbs_random *random, tbs_crypto_algorithm_initializer crypto_algorithm_init);
 
-bool _tbs_enc_decrypt(char *section_head, char *section_foot, tbs_crypto_algorithm_initializer crypto_algorithm_init);
+typedef struct _tbs_section_location {
+    unsigned char *start;
+    unsigned char *end;
+} _tbs_section_location;
+
+#define _TBS_SECTION_IS_DEFINED(section)                                    ((section).start != NULL)
+
+bool _tbs_detect_section_location(_tbs_section_location *result, unsigned char *start_label, unsigned char *end_label);
+
+bool _tbs_enc_encrypt(const _tbs_section_location *section, tbs_random *random, tbs_crypto_algorithm_initializer crypto_algorithm_init);
+
+bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm_initializer crypto_algorithm_init);
 
 /*
  * Encrypt a given expression.
@@ -121,19 +131,41 @@ bool _tbs_enc_decrypt(char *section_head, char *section_foot, tbs_crypto_algorit
     __label__ _TBS_SYM_NAME(n, section_end);                                \
     const _tbs_section_config _TBS_SYM_NAME(n, config) =                    \
         _TBS_SECTION_CONFIG_DEFAULT(__VA_ARGS__);                           \
-    (void)&&_TBS_SYM_NAME(n, section_start);                                \
-    (void)&&_TBS_SYM_NAME(n, section_end);                                  \
+    static _tbs_section_location _TBS_SYM_NAME(n, section_location) = { .start = NULL, .end = NULL }; \
+    if (!_TBS_SECTION_IS_DEFINED(_TBS_SYM_NAME(n, section_location))) {     \
+        if (_TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), thread_safe)) {   \
+            static pthread_mutex_t _TBS_SYM_NAME(n, section_detection_lock) =                 \
+                PTHREAD_MUTEX_INITIALIZER;                                      \
+            pthread_mutex_lock(&_TBS_SYM_NAME(n, section_detection_lock));      \
+            if (!_TBS_SECTION_IS_DEFINED(_TBS_SYM_NAME(n, section_location))) { \
+                /* detect */                                                    \
+                _tbs_detect_section_location(                                   \
+                    &_TBS_SYM_NAME(n, section_location),                 \
+                    (unsigned char *)&&_TBS_SYM_NAME(n, section_start),         \
+                    (unsigned char *)&&_TBS_SYM_NAME(n, section_end));           \
+            }                                                                       \
+            pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_detection_lock));        \
+        } else {                                                                    \
+                /* detect */                                                                \
+                _tbs_detect_section_location(                                   \
+                    &_TBS_SYM_NAME(n, section_location),                 \
+                    (unsigned char *)&&_TBS_SYM_NAME(n, section_start),         \
+                    (unsigned char *)&&_TBS_SYM_NAME(n, section_end));           \
+        }                                                                       \
+    }                                                                       \
+    _tbs_log_trace("X4");\
     _TBS_PROTECTED_EXPRESSION(                                              \
         n,                                                                  \
         ({                                                                  \
-            _TBS_LABEL(_TBS_SYM_NAME(n, section_start));                    \
-            _TBS_ENC_HEAD;                                                  \
+                                \
+            _TBS_AVOID_LABEL_OPTIMIZATIONS({_TBS_LABEL(_TBS_SYM_NAME(n, section_start));_TBS_ENC_HEAD_ASM;});            \
                                                                             \
             const _tbs_auto_type _TBS_SYM_NAME(n, enc_exp_res) = (expression); \
             _tbs_log_trace("code done");                                    \
                                                                             \
-            _TBS_LABEL(_TBS_SYM_NAME(n, section_end));                      \
-            _TBS_ENC_FOOT;                                                  \
+                                  \
+            _TBS_ENC_FOOT_ASM;  \
+            _TBS_AVOID_LABEL_OPTIMIZATIONS(_TBS_LABEL(_TBS_SYM_NAME(n, section_end)));            \
                                                                             \
             _TBS_SYM_NAME(n, enc_exp_res);                                  \
         }),                                                                 \
@@ -142,14 +174,12 @@ bool _tbs_enc_decrypt(char *section_head, char *section_foot, tbs_crypto_algorit
         _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), re_encrypt),      \
         _TBS_STMT_WRAPPER(                                                  \
             _tbs_enc_decrypt(                                               \
-                (char *)&&_TBS_SYM_NAME(n, section_start),                          \
-                (char *)&&_TBS_SYM_NAME(n, section_end),                           \
+                &_TBS_SYM_NAME(n, section_location),                           \
                 _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), crypto_algorithm_init)); \
         ),                                                                  \
         _TBS_STMT_WRAPPER(                                                  \
             _tbs_enc_encrypt(                                               \
-                (char *)&&_TBS_SYM_NAME(n, section_start),                          \
-                (char *)&&_TBS_SYM_NAME(n, section_end),                            \
+                &_TBS_SYM_NAME(n, section_location),                           \
                 _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), keygen),  \
                 _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), crypto_algorithm_init)); \
         )                                                                   \
@@ -175,6 +205,7 @@ _TBS_STMT_WRAPPER(_TBS_ENC_EXP(__COUNTER__, ({                              \
 #define tbs_enc_exp(expression, ...)                                        (expression)
 
 #endif
+
 
 #ifdef __cplusplus
 }

@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include <stdlib.h>
+
 /*
  * Wrap a piece of code into a statement. Mostly used to avoid writing
  * all the time "do { ... } while (0)"
@@ -114,6 +116,10 @@ _Pragma("GCC pop_options")                                                  \
 #else
 #define _tbs_auto_type                                                      __auto_type
 #endif
+
+unsigned char *_tbs_memmem(unsigned char *start_incl, unsigned char *end_excl, const unsigned char *pattern, size_t pattern_size);
+
+unsigned char *_tbs_memmem_reversed(unsigned char *start_incl, unsigned char *end_excl, const unsigned char *pattern, size_t pattern_size);
 
 #ifdef __cplusplus
 }

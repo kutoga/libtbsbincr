@@ -4,8 +4,9 @@
 
 #define CODE_START_MARKER                               _TBS_LABEL(_code_start)
 #define CODE_END_MARKER                                 _TBS_LABEL(_code_end)
-#define CODE_BYTES                                      (const unsigned char *)(&&_code_start)
-#define CODE_LEN                                        ((const unsigned char *)&&_code_end - (const unsigned char *)&&_code_start)
+#define CODE_START                                      (unsigned char*)&&_code_start
+#define CODE_END                                        (unsigned char*)&&_code_end
+#define CODE_LEN                                        (CODE_END - CODE_START)
 
 
 TEST(tbs_enc_head, head_enc_len) {
@@ -21,7 +22,7 @@ TEST(tbs_enc_head, op_code) {
     _TBS_ENC_HEAD;
     CODE_END_MARKER;
 
-    const unsigned char *opcode_bytes = CODE_BYTES;
+    const unsigned char *opcode_bytes = CODE_START;
     size_t opcode_len = CODE_LEN;
 
     ASSERT_GE(opcode_len, _TBS_ENC_HEAD_LEN);
@@ -42,7 +43,7 @@ TEST(tbs_enc_foot, op_code) {
     _TBS_ENC_FOOT;
     CODE_END_MARKER;
 
-    const unsigned char *opcode_bytes = CODE_BYTES;
+    const unsigned char *opcode_bytes = CODE_START;
     size_t opcode_len = CODE_LEN;
 
     ASSERT_GE(opcode_len, _TBS_ENC_FOOT_LEN);

@@ -1,23 +1,13 @@
 #include <gtest/gtest.h>
+#include <tbs/common.h>
 #include "enc_tests_c.h"
 #include "enc_tests.h"
 
 #define CODE_START_MARKER                               _TBS_LABEL(_code_start)
 #define CODE_END_MARKER                                 _TBS_LABEL(_code_end)
-#define CODE_START                                      (const unsigned char*)&&_code_start
-#define CODE_END                                        (const unsigned char*)&&_code_end
-#define CODE_LEN                                        ((const unsigned char *)&&_code_end - (const unsigned char *)&&_code_start)
-
-
-static const unsigned char *c_memmem(const unsigned char *start_incl, const unsigned char *end_excl, const unsigned char *pattern, size_t pattern_size) {
-    for (const unsigned char *curr = start_incl; curr + pattern_size < end_excl; ++curr) {
-        if (!memcmp(curr, pattern, pattern_size)) {
-            return curr;
-        }
-    }
-
-    return NULL;
-}
+#define CODE_START                                      (unsigned char*)&&_code_start
+#define CODE_END                                        (unsigned char*)&&_code_end
+#define CODE_LEN                                        (CODE_END - CODE_START)
 
 TEST(tbs_enc, encrypted_section_tags) {
     int dummy = 0;
@@ -30,8 +20,8 @@ TEST(tbs_enc, encrypted_section_tags) {
     });
     CODE_END_MARKER;
 
-    const unsigned char *head = c_memmem(CODE_START, CODE_END, head_opcode, sizeof(head_opcode));
-    const unsigned char *foot = c_memmem(CODE_START, CODE_END, foot_opcode, sizeof(foot_opcode));
+    unsigned char *head = _tbs_memmem(CODE_START, CODE_END, head_opcode, sizeof(head_opcode));
+    unsigned char *foot = _tbs_memmem(CODE_START, CODE_END, foot_opcode, sizeof(foot_opcode));
     ASSERT_TRUE(head != nullptr);
     ASSERT_TRUE(foot != nullptr);
     ASSERT_LE(head, foot);
