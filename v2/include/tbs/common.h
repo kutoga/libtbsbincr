@@ -31,6 +31,8 @@ extern "C" {
 
 #define _TBS_ARR_LEN(arr)                                                   (sizeof(arr) / sizeof((arr)[0]))
 
+#define _TBS_MIN(a, b)                                                      ((a) <= (b) ? (a) : (b))
+
 /*
  * Is the current compiler GCC?
  */

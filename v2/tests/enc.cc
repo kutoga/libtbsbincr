@@ -122,6 +122,22 @@ TEST(tbs_enc_exp, cpp_mixed_statements) {
  * _TBS_PROTECTED_EXPRESSION tests
  */
 
+enum t_protected_exp_action {
+    PREPARE,
+    CODE,
+    RESET
+};
+
+#define ASSERT_ACTIONS_EQUAL(executed_actions, executed_actions_count, ...)                         \
+_TBS_STMT_WRAPPER(({                                                                                 \
+    const t_protected_exp_action actions[] = { __VA_ARGS__ };                                      \
+    int min_len = _TBS_MIN(executed_actions_count, (int)_TBS_ARR_LEN(actions));                     \
+    for (int i = 0; i < min_len; ++i) {                                                             \
+        ASSERT_EQ(executed_actions[i], actions[i]);                                                 \
+    }                                                                                               \
+    ASSERT_EQ(executed_actions_count, (int)_TBS_ARR_LEN(actions));                                  \
+}))
+
 TEST(_tbs_protected_expression, expression_evaluates) {
     const int expression_res = 12;
 
@@ -161,113 +177,100 @@ TEST(_tbs_protected_expression, _re_enetrant_allows_recursive_calls) {
 }
 
 TEST(_tbs_protected_expression, _without_auto_reset_prepares_once) {
-    enum { CODE, PREPARE, RESET } actions[10];
-    int action_count = 0;
+    enum t_protected_exp_action actions[10];
+    int actions_count = 0;
 
     const int dummy = _TBS_PROTECTED_EXPRESSION(0, ({
-        if (action_count < (int)_TBS_ARR_LEN(actions)) {
-            actions[action_count++] = CODE;
+        if (actions_count < (int)_TBS_ARR_LEN(actions)) {
+            actions[actions_count++] = CODE;
         }
         0;
     }), false, false, false, {
-        if (action_count < (int)_TBS_ARR_LEN(actions)) {
-            actions[action_count++] = PREPARE;
+        if (actions_count < (int)_TBS_ARR_LEN(actions)) {
+            actions[actions_count++] = PREPARE;
         }
     }, {
-        if (action_count < (int)_TBS_ARR_LEN(actions)) {
-            actions[action_count++] = RESET;
+        if (actions_count < (int)_TBS_ARR_LEN(actions)) {
+            actions[actions_count++] = RESET;
         }
     });
 
     ASSERT_EQ(dummy, 0);
-    ASSERT_EQ(action_count, 2);
-    ASSERT_EQ(actions[0], PREPARE);
-    ASSERT_EQ(actions[1], CODE);
+    ASSERT_ACTIONS_EQUAL(actions, actions_count, PREPARE, CODE);
 }
 
 TEST(_tbs_protected_expression, _without_auto_reset_prepares_once_when_multiple_times_executed) {
-    enum { CODE, PREPARE, RESET } actions[10];
-    int action_count = 0;
+    enum t_protected_exp_action actions[10];
+    int actions_count = 0;
 
     for (int i = 0; i < 2; ++i) {
         const int dummy = _TBS_PROTECTED_EXPRESSION(0, ({
-            if (action_count < (int)_TBS_ARR_LEN(actions)) {
-                actions[action_count++] = CODE;
+            if (actions_count < (int)_TBS_ARR_LEN(actions)) {
+                actions[actions_count++] = CODE;
             }
             0;
         }), false, false, false, {
-            if (action_count < (int)_TBS_ARR_LEN(actions)) {
-                actions[action_count++] = PREPARE;
+            if (actions_count < (int)_TBS_ARR_LEN(actions)) {
+                actions[actions_count++] = PREPARE;
             }
         }, {
-            if (action_count < (int)_TBS_ARR_LEN(actions)) {
-                actions[action_count++] = RESET;
+            if (actions_count < (int)_TBS_ARR_LEN(actions)) {
+                actions[actions_count++] = RESET;
             }
         });
 
         ASSERT_EQ(dummy, 0);
     }
 
-    ASSERT_EQ(action_count, 3);
-    ASSERT_EQ(actions[0], PREPARE);
-    ASSERT_EQ(actions[1], CODE);
-    ASSERT_EQ(actions[2], CODE);
+    ASSERT_ACTIONS_EQUAL(actions, actions_count, PREPARE, CODE, CODE);
 }
 
 TEST(_tbs_protected_expression, _auto_reset_resets) {
-    enum { CODE, PREPARE, RESET } actions[10];
-    int action_count = 0;
+    enum t_protected_exp_action actions[10];
+    int actions_count = 0;
 
     const int dummy = _TBS_PROTECTED_EXPRESSION(0, ({
-        if (action_count < (int)_TBS_ARR_LEN(actions)) {
-            actions[action_count++] = CODE;
+        if (actions_count < (int)_TBS_ARR_LEN(actions)) {
+            actions[actions_count++] = CODE;
         }
         0;
     }), false, false, true, {
-        if (action_count < (int)_TBS_ARR_LEN(actions)) {
-            actions[action_count++] = PREPARE;
+        if (actions_count < (int)_TBS_ARR_LEN(actions)) {
+            actions[actions_count++] = PREPARE;
         }
     }, {
-        if (action_count < (int)_TBS_ARR_LEN(actions)) {
-            actions[action_count++] = RESET;
+        if (actions_count < (int)_TBS_ARR_LEN(actions)) {
+            actions[actions_count++] = RESET;
         }
     });
 
     ASSERT_EQ(dummy, 0);
-    ASSERT_EQ(action_count, 3);
-    ASSERT_EQ(actions[0], PREPARE);
-    ASSERT_EQ(actions[1], CODE);
-    ASSERT_EQ(actions[2], RESET);
+    ASSERT_ACTIONS_EQUAL(actions, actions_count, PREPARE, CODE, RESET);
 }
 
 TEST(_tbs_protected_expression, _auto_reset_resets_always_when_multiple_times_executed) {
-    enum { CODE, PREPARE, RESET } actions[10];
-    int action_count = 0;
+    enum t_protected_exp_action actions[10];
+    int actions_count = 0;
 
     for (int i = 0; i < 2; ++i) {
         const int dummy = _TBS_PROTECTED_EXPRESSION(0, ({
-            if (action_count < (int)_TBS_ARR_LEN(actions)) {
-                actions[action_count++] = CODE;
+            if (actions_count < (int)_TBS_ARR_LEN(actions)) {
+                actions[actions_count++] = CODE;
             }
             0;
         }), false, false, true, {
-            if (action_count < (int)_TBS_ARR_LEN(actions)) {
-                actions[action_count++] = PREPARE;
+            if (actions_count < (int)_TBS_ARR_LEN(actions)) {
+                actions[actions_count++] = PREPARE;
             }
         }, {
-            if (action_count < (int)_TBS_ARR_LEN(actions)) {
-                actions[action_count++] = RESET;
+            if (actions_count < (int)_TBS_ARR_LEN(actions)) {
+                actions[actions_count++] = RESET;
             }
         });
 
         ASSERT_EQ(dummy, 0);
     }
 
-    ASSERT_EQ(action_count, 6);
-    ASSERT_EQ(actions[0], PREPARE);
-    ASSERT_EQ(actions[1], CODE);
-    ASSERT_EQ(actions[2], RESET);
-    ASSERT_EQ(actions[3], PREPARE);
-    ASSERT_EQ(actions[4], CODE);
-    ASSERT_EQ(actions[5], RESET);
+    ASSERT_EQ(actions_count, 6);
+    ASSERT_ACTIONS_EQUAL(actions, actions_count, PREPARE, CODE, RESET, PREPARE, CODE, RESET);
 }
