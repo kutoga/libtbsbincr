@@ -78,10 +78,12 @@ extern "C" {
         if (thread_safe) {                                                  \
             pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));          \
         }                                                                   \
-    } else if (thread_safe) {                                               \
-        pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));                \
+    } else {                                                                \
+        if (thread_safe) {                                               \
+            pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));                \
+        }                                                                  \
         prepare_stmt;                                                       \
-    }                                                                       \
+    }                                                                      \
     const _tbs_auto_type _TBS_SYM_NAME(n, protected_exp_res) = (expression);   \
     if (auto_reset) {                                                       \
         if (re_enetrant) {                                                  \
@@ -94,8 +96,10 @@ extern "C" {
             if (thread_safe) {                                              \
                 pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));      \
             }                                                               \
-        } else if (thread_safe) {                                           \
-            reset_stmt;                                                     \
+        } else {                                                            \
+            if (thread_safe) {                                              \
+                reset_stmt;                                                 \
+            }                                                               \
             pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));          \
         }                                                                   \
     }                                                                       \
