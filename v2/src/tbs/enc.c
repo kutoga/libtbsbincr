@@ -56,9 +56,9 @@ bool _tbs_enc_encrypt(const _tbs_section_location *section, tbs_random *random, 
     tbs_enc_foot_data *foot = (tbs_enc_foot_data *)(section->end - sizeof(tbs_enc_foot_data));
     const size_t total_section_size = section->end - section->start;
     _tbs_log_trace("Encrypt: start=%p end=%p", head, foot);
-    _tbs_log_stringify_memory(section->start, total_section_size, mem, ({
-        _tbs_log_trace("Section content: %s", mem);
-    }));
+    // _tbs_log_stringify_memory(section->start, total_section_size, mem, ({
+    //     _tbs_log_trace("Section content: %s", mem);
+    // }));
 
     if (head->encryption_state == TBS_ENCRYPTED) {
         _tbs_log_trace("Section %p is already encrypted", section->start);
@@ -108,9 +108,9 @@ bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm
     const size_t code_length = section->end - section->start - sizeof(*head) - sizeof(*foot);
     const size_t total_section_size = section->end - section->start;
     _tbs_log_trace("Decrypt: start=%p end=%p", head, foot);
-    _tbs_log_stringify_memory(section->start, total_section_size, mem, ({
-        _tbs_log_trace("Section content: %s", mem);
-    }));
+    // _tbs_log_stringify_memory(section->start, total_section_size, mem, ({
+    //     _tbs_log_trace("Section content: %s", mem);
+    // }));
 
     if (head->encryption_state == TBS_DECRPTED) {
         _tbs_log_trace("Section %p is already decrypted", section->start);

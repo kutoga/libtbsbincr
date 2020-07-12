@@ -153,7 +153,6 @@ bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm
                     (unsigned char *)&&_TBS_SYM_NAME(n, section_end));           \
         }                                                                       \
     }                                                                       \
-    _tbs_log_trace("X4");\
     _TBS_PROTECTED_EXPRESSION(                                              \
         n,                                                                  \
         ({                                                                  \
