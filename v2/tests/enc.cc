@@ -160,6 +160,60 @@ TEST(_tbs_protected_expression, _re_enetrant_allows_recursive_calls) {
     ASSERT_EQ(res, 120);
 }
 
+TEST(_tbs_protected_expression, _without_auto_reset_prepares_once) {
+    enum { CODE, PREPARE, RESET } actions[10];
+    int action_count = 0;
+
+    const int dummy = _TBS_PROTECTED_EXPRESSION(0, ({
+        if (action_count < (int)_TBS_ARR_LEN(actions)) {
+            actions[action_count++] = CODE;
+        }
+        0;
+    }), false, false, false, {
+        if (action_count < (int)_TBS_ARR_LEN(actions)) {
+            actions[action_count++] = PREPARE;
+        }
+    }, {
+        if (action_count < (int)_TBS_ARR_LEN(actions)) {
+            actions[action_count++] = RESET;
+        }
+    });
+
+    ASSERT_EQ(dummy, 0);
+    ASSERT_EQ(action_count, 2);
+    ASSERT_EQ(actions[0], PREPARE);
+    ASSERT_EQ(actions[1], CODE);
+}
+
+TEST(_tbs_protected_expression, _without_auto_reset_prepares_once_when_multiple_times_executed) {
+    enum { CODE, PREPARE, RESET } actions[10];
+    int action_count = 0;
+
+    for (int i = 0; i < 2; ++i) {
+        const int dummy = _TBS_PROTECTED_EXPRESSION(0, ({
+            if (action_count < (int)_TBS_ARR_LEN(actions)) {
+                actions[action_count++] = CODE;
+            }
+            0;
+        }), false, false, false, {
+            if (action_count < (int)_TBS_ARR_LEN(actions)) {
+                actions[action_count++] = PREPARE;
+            }
+        }, {
+            if (action_count < (int)_TBS_ARR_LEN(actions)) {
+                actions[action_count++] = RESET;
+            }
+        });
+
+        ASSERT_EQ(dummy, 0);
+    }
+
+    ASSERT_EQ(action_count, 3);
+    ASSERT_EQ(actions[0], PREPARE);
+    ASSERT_EQ(actions[1], CODE);
+    ASSERT_EQ(actions[2], CODE);
+}
+
 TEST(_tbs_protected_expression, _auto_reset_resets) {
     enum { CODE, PREPARE, RESET } actions[10];
     int action_count = 0;
@@ -184,4 +238,36 @@ TEST(_tbs_protected_expression, _auto_reset_resets) {
     ASSERT_EQ(actions[0], PREPARE);
     ASSERT_EQ(actions[1], CODE);
     ASSERT_EQ(actions[2], RESET);
+}
+
+TEST(_tbs_protected_expression, _auto_reset_resets_always_when_multiple_times_executed) {
+    enum { CODE, PREPARE, RESET } actions[10];
+    int action_count = 0;
+
+    for (int i = 0; i < 2; ++i) {
+        const int dummy = _TBS_PROTECTED_EXPRESSION(0, ({
+            if (action_count < (int)_TBS_ARR_LEN(actions)) {
+                actions[action_count++] = CODE;
+            }
+            0;
+        }), false, false, true, {
+            if (action_count < (int)_TBS_ARR_LEN(actions)) {
+                actions[action_count++] = PREPARE;
+            }
+        }, {
+            if (action_count < (int)_TBS_ARR_LEN(actions)) {
+                actions[action_count++] = RESET;
+            }
+        });
+
+        ASSERT_EQ(dummy, 0);
+    }
+
+    ASSERT_EQ(action_count, 6);
+    ASSERT_EQ(actions[0], PREPARE);
+    ASSERT_EQ(actions[1], CODE);
+    ASSERT_EQ(actions[2], RESET);
+    ASSERT_EQ(actions[3], PREPARE);
+    ASSERT_EQ(actions[4], CODE);
+    ASSERT_EQ(actions[5], RESET);
 }
