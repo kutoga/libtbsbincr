@@ -128,14 +128,28 @@ enum t_protected_exp_action {
     RESET
 };
 
+static const char *protected_exp_action_to_string[] = {
+    [PREPARE] = "PREPARE",
+    [CODE]    = "CODE",
+    [RESET]   = "RESET"
+};
+
+static std::string stringify_actions(const enum t_protected_exp_action *actions, int n_actions) {
+    std::string res;
+    for (int i = 0; i < n_actions; ++i) {
+        if (i > 0) {
+            res += ", ";
+        }
+        res += protected_exp_action_to_string[actions[i]];
+    }
+    return res;
+}
+
 #define ASSERT_ACTIONS_EQUAL(executed_actions, executed_actions_count, ...)                         \
 _TBS_STMT_WRAPPER(({                                                                                 \
-    const t_protected_exp_action actions[] = { __VA_ARGS__ };                                      \
-    int min_len = _TBS_MIN(executed_actions_count, (int)_TBS_ARR_LEN(actions));                     \
-    for (int i = 0; i < min_len; ++i) {                                                             \
-        ASSERT_EQ(executed_actions[i], actions[i]);                                                 \
-    }                                                                                               \
-    ASSERT_EQ(executed_actions_count, (int)_TBS_ARR_LEN(actions));                                  \
+    const t_protected_exp_action actions[] = { __VA_ARGS__ };                                       \
+    ASSERT_STREQ(stringify_actions(executed_actions, executed_actions_count).c_str(),                       \
+                 stringify_actions(actions, _TBS_ARR_LEN(actions)).c_str());                                 \
 }))
 
 TEST(_tbs_protected_expression, expression_evaluates) {
@@ -271,6 +285,5 @@ TEST(_tbs_protected_expression, _auto_reset_resets_always_when_multiple_times_ex
         ASSERT_EQ(dummy, 0);
     }
 
-    ASSERT_EQ(actions_count, 6);
     ASSERT_ACTIONS_EQUAL(actions, actions_count, PREPARE, CODE, RESET, PREPARE, CODE, RESET);
 }
