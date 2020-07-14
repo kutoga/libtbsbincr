@@ -97,10 +97,10 @@ extern "C" {
                 pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));      \
             }                                                               \
         } else {                                                            \
+            reset_stmt;                                                 \
             if (thread_safe) {                                              \
-                reset_stmt;                                                 \
+                pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));          \
             }                                                               \
-            pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_lock));          \
         }                                                                   \
     }                                                                       \
     _TBS_SYM_NAME(n, protected_exp_res);                                    \
