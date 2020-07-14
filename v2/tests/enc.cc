@@ -49,7 +49,7 @@ TEST(tbs_enc, encryption_changes_code) {
     CODE_START_MARKER;
     tbs_enc({
         dummy++; 
-    }, _.re_encrypt=true);
+    }, _.re_encrypt=true, _.re_enetrant=false);
     CODE_END_MARKER;
 
     memcpy((void *)code_after, (void *)CODE_START, CODE_LEN);
@@ -182,7 +182,7 @@ static int factorial(int n) {
     }), true, false, false, _TBS_STMT_EMPTY, _TBS_STMT_EMPTY);
 }
 
-TEST(_tbs_protected_expression, _re_enetrant_allows_recursive_calls) {
+TEST(_tbs_protected_expression, re_enetrant_allows_recursive_calls) {
     const int n = 5;
 
     const int res = factorial(n);
@@ -190,7 +190,7 @@ TEST(_tbs_protected_expression, _re_enetrant_allows_recursive_calls) {
     ASSERT_EQ(res, 120);
 }
 
-TEST(_tbs_protected_expression, _without_auto_reset_prepares_once) {
+TEST(_tbs_protected_expression, without_auto_reset_prepares_once) {
     enum t_protected_exp_action actions[10];
     int actions_count = 0;
 
@@ -213,7 +213,7 @@ TEST(_tbs_protected_expression, _without_auto_reset_prepares_once) {
     ASSERT_ACTIONS_EQUAL(actions, actions_count, PREPARE, CODE);
 }
 
-TEST(_tbs_protected_expression, _without_auto_reset_prepares_once_when_multiple_times_executed) {
+TEST(_tbs_protected_expression, without_auto_reset_prepares_once_when_multiple_times_executed) {
     enum t_protected_exp_action actions[10];
     int actions_count = 0;
 
@@ -239,7 +239,7 @@ TEST(_tbs_protected_expression, _without_auto_reset_prepares_once_when_multiple_
     ASSERT_ACTIONS_EQUAL(actions, actions_count, PREPARE, CODE, CODE);
 }
 
-TEST(_tbs_protected_expression, _auto_reset_resets) {
+TEST(_tbs_protected_expression, auto_reset_resets) {
     enum t_protected_exp_action actions[10];
     int actions_count = 0;
 
@@ -262,7 +262,7 @@ TEST(_tbs_protected_expression, _auto_reset_resets) {
     ASSERT_ACTIONS_EQUAL(actions, actions_count, PREPARE, CODE, RESET);
 }
 
-TEST(_tbs_protected_expression, _auto_reset_resets_always_when_multiple_times_executed) {
+TEST(_tbs_protected_expression, auto_reset_resets_always_when_multiple_times_executed) {
     enum t_protected_exp_action actions[10];
     int actions_count = 0;
 
@@ -286,4 +286,32 @@ TEST(_tbs_protected_expression, _auto_reset_resets_always_when_multiple_times_ex
     }
 
     ASSERT_ACTIONS_EQUAL(actions, actions_count, PREPARE, CODE, RESET, PREPARE, CODE, RESET);
+}
+
+static int factorial2(int n, enum t_protected_exp_action *actions, int n_actions, int *actions_write_i) {
+    return _TBS_PROTECTED_EXPRESSION(0, ({
+        if (*actions_write_i < n_actions) {
+            actions[(*actions_write_i)++] = CODE;
+        }
+        return n <= 1 ? 1 : n * factorial2(n - 1, actions, n_actions, actions_write_i);
+    }), true, false, true, {
+        if (*actions_write_i < n_actions) {
+            actions[(*actions_write_i)++] = PREPARE;
+        }
+    }, {
+        if (*actions_write_i < n_actions) {
+            actions[(*actions_write_i)++] = RESET;
+        }
+    });
+}
+
+TEST(_tbs_protected_expression, re_enetrant_resets_when_all_executions_are_finished) {
+    enum t_protected_exp_action actions[10];
+    int actions_count = 0;
+    int n = 3;
+
+    const int res = factorial2(n, actions, _TBS_ARR_LEN(actions), &actions_count);
+
+    ASSERT_EQ(res, 6);
+    ASSERT_ACTIONS_EQUAL(actions, actions_count, PREPARE, CODE, CODE, CODE, RESET);
 }

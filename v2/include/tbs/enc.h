@@ -90,7 +90,7 @@ extern "C" {
             if (thread_safe) {                                              \
                 pthread_mutex_lock(&_TBS_SYM_NAME(n, section_lock));        \
             }                                                               \
-            if (_TBS_SYM_NAME(n, access_count)++ == 0) {                    \
+            if (--_TBS_SYM_NAME(n, access_count) == 0) {                    \
                 reset_stmt;                                                 \
             }                                                               \
             if (thread_safe) {                                              \
