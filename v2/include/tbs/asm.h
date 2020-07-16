@@ -39,7 +39,6 @@ _TBS_STMT_WRAPPER(do {                                  \
     code;                                               \
 } while (_tbs_asm_always_zero))
 
-
 /*
  * The head an foot assembler sequence has three requirements:
  * 1) It must not have any side effects. The code should do

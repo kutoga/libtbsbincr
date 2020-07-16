@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 /*
  * Wrap a piece of code into a statement. Mostly used to avoid writing
@@ -108,9 +109,19 @@ code                                                                        \
 _Pragma("GCC pop_options")                                                  \
 
 #ifdef _TBS_IS_GCC
-#define _TBS_DISABLE_OPTIMIZATIONS_ATTR                          __attribute__((optimize("O0")))
+#define tbs_restricted_opt                                                  __attribute__((optimize("no-schedule-insns,no-schedule-insns2")))
+
+#define tbs_restrcited_opt_begin                                            \
+_Pragma("GCC push_options")                                                 \
+_Pragma("GCC optimize (\"no-schedule-insns,no-schedule-insns2\")")
+
+#define tbs_restrcited_opt_end                                              \
+_Pragma("GCC pop_options")
+
 #else
-#define _TBS_DISABLE_OPTIMIZATIONS_ATTR                          __attribute__((optnone))
+#define tbs_restricted_opt
+#define tbs_restrcited_opt_begin
+#define tbs_restrcited_opt_end
 #endif
 
 #ifdef __cplusplus

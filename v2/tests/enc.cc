@@ -18,23 +18,31 @@ _TBS_STMT_WRAPPER(({                                     \
     }                                                   \
 }))
 
+tbs_restrcited_opt_begin
+
 /*
  * tbs_enc / tbs_enc_exp tests
  */
 
-TEST(tbs_enc, encrypted_section_tags) {
+TEST(tbs_enc, section_tags) {
     int dummy = 0;
     const unsigned char head_opcode[] = _TBS_ENC_HEAD_OPCODE;
     const unsigned char foot_opcode[] = _TBS_ENC_FOOT_OPCODE;
 
+    printf("start=%p\n", CODE_START);
+    printf("end  =%p\n", CODE_END);
+    printf("len  =%d\n", (int)CODE_LEN);
+
     CODE_START_MARKER;
     tbs_enc({
         dummy++; 
-    });
+    }, _.re_encrypt=false);
     CODE_END_MARKER;
 
+    printf("hey");
+
     unsigned char *head = _tbs_memmem(CODE_START, CODE_END, head_opcode, sizeof(head_opcode));
-    unsigned char *foot = _tbs_memmem(CODE_START, CODE_END, foot_opcode, sizeof(foot_opcode));
+    unsigned char *foot = _tbs_memmem_reversed(CODE_START, CODE_END, foot_opcode, sizeof(foot_opcode));
     ASSERT_TRUE(head != nullptr);
     ASSERT_TRUE(foot != nullptr);
     ASSERT_LE(head, foot);
@@ -293,7 +301,8 @@ static int factorial2(int n, enum t_protected_exp_action *actions, int n_actions
         if (*actions_write_i < n_actions) {
             actions[(*actions_write_i)++] = CODE;
         }
-        return n <= 1 ? 1 : n * factorial2(n - 1, actions, n_actions, actions_write_i);
+        const int res = n <= 1 ? 1 : n * factorial2(n - 1, actions, n_actions, actions_write_i);
+        res;
     }), true, false, true, {
         if (*actions_write_i < n_actions) {
             actions[(*actions_write_i)++] = PREPARE;
@@ -315,3 +324,5 @@ TEST(_tbs_protected_expression, re_enetrant_resets_when_all_executions_are_finis
     ASSERT_EQ(res, 6);
     ASSERT_ACTIONS_EQUAL(actions, actions_count, PREPARE, CODE, CODE, CODE, RESET);
 }
+
+tbs_restrcited_opt_end

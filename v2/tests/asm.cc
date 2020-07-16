@@ -59,5 +59,5 @@ TEST(tbs_avoid_label_optimizations, overhead) {
     size_t overhead = CODE_LEN;
 
     ASSERT_GT(overhead, 0) << "The avoid label optimizations should create some overhead";
-    ASSERT_LT(overhead, 20) << "The overhead should be less than 20 bytes";
+    ASSERT_LT(overhead, 32) << "The overhead should be less than 32 bytes";
 }

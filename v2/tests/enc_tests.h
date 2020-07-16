@@ -15,7 +15,7 @@ extern "C" {
  */
 
 
-static inline bool test_tbs_enc_exp_single_expression() {
+static inline tbs_restricted_opt bool test_tbs_enc_exp_single_expression() {
     const int a = 1;
     int b = 2;
 
@@ -25,7 +25,7 @@ static inline bool test_tbs_enc_exp_single_expression() {
 }
 
 
-static inline bool test_tbs_enc_exp_multiple_expressions() {
+static inline tbs_restricted_opt bool test_tbs_enc_exp_multiple_expressions() {
     const int a = 1;
     const int b = 2;
 
@@ -39,7 +39,7 @@ static inline bool test_tbs_enc_exp_multiple_expressions() {
 }
 
 
-static inline bool test_tbs_enc_exp_nested_expressions() {
+static inline tbs_restricted_opt bool test_tbs_enc_exp_nested_expressions() {
     const int a = 1;
     const int b = 2;
 
@@ -49,7 +49,7 @@ static inline bool test_tbs_enc_exp_nested_expressions() {
 }
 
 
-static inline bool test_tbs_enc_exp_single_statement() {
+static inline tbs_restricted_opt bool test_tbs_enc_exp_single_statement() {
     const int a = 1;
     int b = 2;
 
@@ -62,7 +62,7 @@ static inline bool test_tbs_enc_exp_single_statement() {
 }
 
 
-static inline bool test_tbs_enc_exp_multiple_statements() {
+static inline tbs_restricted_opt bool test_tbs_enc_exp_multiple_statements() {
     const int a = 1;
     const int b = 2;
 
@@ -77,7 +77,7 @@ static inline bool test_tbs_enc_exp_multiple_statements() {
 }
 
 
-static inline bool test_tbs_enc_exp_nested_statements() {
+static inline tbs_restricted_opt bool test_tbs_enc_exp_nested_statements() {
     const int a = 1;
     const int b = 2;
 
@@ -94,7 +94,7 @@ static inline bool test_tbs_enc_exp_nested_statements() {
 }
 
 
-static inline bool test_tbs_enc_exp_mixed_statements() {
+static inline tbs_restricted_opt bool test_tbs_enc_exp_mixed_statements() {
     const int a = 1;
     const int b = 2;
 
@@ -102,7 +102,7 @@ static inline bool test_tbs_enc_exp_mixed_statements() {
     tbs_enc({
         int res_tmp1 = tbs_enc_exp(a * b);
         int res_tmp2 = tbs_enc_exp(a - b);
-        return tbs_enc_exp(({
+        res = tbs_enc_exp(({
             int tmp;
             tbs_enc(tmp = res_tmp1 + res_tmp2);
             tmp;

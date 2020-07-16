@@ -142,7 +142,6 @@ bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm
                 PTHREAD_MUTEX_INITIALIZER;                                      \
             pthread_mutex_lock(&_TBS_SYM_NAME(n, section_detection_lock));      \
             if (!_TBS_SECTION_IS_DEFINED(_TBS_SYM_NAME(n, section_location))) { \
-                /* detect */                                                    \
                 _tbs_detect_section_location(                                   \
                     &_TBS_SYM_NAME(n, section_location),                 \
                     (unsigned char *)&&_TBS_SYM_NAME(n, section_start),         \
@@ -150,7 +149,6 @@ bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm
             }                                                                       \
             pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_detection_lock));        \
         } else {                                                                    \
-                /* detect */                                                                \
                 _tbs_detect_section_location(                                   \
                     &_TBS_SYM_NAME(n, section_location),                 \
                     (unsigned char *)&&_TBS_SYM_NAME(n, section_start),         \
@@ -161,15 +159,15 @@ bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm
         n,                                                                  \
         ({                                                                  \
                                 \
-            _TBS_AVOID_LABEL_OPTIMIZATIONS({_TBS_LABEL(_TBS_SYM_NAME(n, section_start));_TBS_ENC_HEAD_ASM;});            \
-                                                                            \
+            _TBS_LABEL(_TBS_SYM_NAME(n, section_start));                    \
+            _TBS_ENC_HEAD_ASM;            \
+            \
             const _tbs_auto_type _TBS_SYM_NAME(n, enc_exp_res) = (expression); \
             _tbs_log_trace("code done");                                    \
-                                                                            \
                                   \
             _TBS_ENC_FOOT_ASM;  \
-            _TBS_AVOID_LABEL_OPTIMIZATIONS(_TBS_LABEL(_TBS_SYM_NAME(n, section_end)));            \
-                                                                            \
+            _TBS_LABEL(_TBS_SYM_NAME(n, section_end));            \
+            \
             _TBS_SYM_NAME(n, enc_exp_res);                                  \
         }),                                                                 \
         _TBS_SECTION_CONFIG_GET(_TBS_SYM_NAME(n, config), re_enetrant),     \

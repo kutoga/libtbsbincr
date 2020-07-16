@@ -54,6 +54,11 @@ static_assert(
 bool _tbs_enc_encrypt(const _tbs_section_location *section, tbs_random *random, tbs_crypto_algorithm_initializer crypto_algorithm_init) {
     tbs_enc_head_data *head = (tbs_enc_head_data *)section->start;
     tbs_enc_foot_data *foot = (tbs_enc_foot_data *)(section->end - sizeof(tbs_enc_foot_data));
+    if (!_TBS_SECTION_IS_DEFINED(*section)) {
+        _tbs_log_error("Section is not defined! Do nothing!");
+        return false;
+    }
+
     const size_t total_section_size = section->end - section->start;
     _tbs_log_trace("Encrypt: start=%p end=%p", head, foot);
     // _tbs_log_stringify_memory(section->start, total_section_size, mem, ({
@@ -80,14 +85,12 @@ bool _tbs_enc_encrypt(const _tbs_section_location *section, tbs_random *random, 
         *enc_data = crypto_alg.encrypt(&crypto_alg, *enc_data);
         checksum = tbs_checksum_next(checksum, *enc_data);
     }
-    tbs_page_set_rx(section->start, total_section_size);
-
     crypto_alg.data_cleanup(&crypto_alg);
-
     head->encryption_state = TBS_ENCRYPTED;
     head->key = key;
     head->code_length = section->end - section->start - sizeof(*head) - sizeof(*foot);
     foot->checksum = checksum;
+    tbs_page_set_rx(section->start, total_section_size);
 
     return true;
 }
@@ -105,6 +108,11 @@ static void tbs_enc_reset_foot_opcode(unsigned char *section_foot) {
 bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm_initializer crypto_algorithm_init) {
     tbs_enc_head_data *head = (tbs_enc_head_data *)section->start;
     tbs_enc_foot_data *foot = (tbs_enc_foot_data *)(section->end - sizeof(tbs_enc_foot_data));
+    if (!_TBS_SECTION_IS_DEFINED(*section)) {
+        _tbs_log_error("Section is not defined! Do nothing!");
+        return false;
+    }
+
     const size_t code_length = section->end - section->start - sizeof(*head) - sizeof(*foot);
     const size_t total_section_size = section->end - section->start;
     _tbs_log_trace("Decrypt: start=%p end=%p", head, foot);
@@ -158,7 +166,7 @@ bool _tbs_detect_section_location(_tbs_section_location *result, unsigned char *
     if ((result->start = _tbs_memmem(start_label, end_label, head_opcode, sizeof(head_opcode))) == NULL) {
         _tbs_log_stringify_memory(start_label, end_label - start_label, section, {
             _tbs_log_stringify_memory(head_opcode, sizeof(head_opcode), head_opcode_str, {
-                _tbs_log_error("Could not detect section start. Section start tag: %s Section: %s", head_opcode_str, section);
+                _tbs_log_error("Could not detect section start. Section start tag: %s Section: start=%p, end=%p code=%s", head_opcode_str, start_label, end_label, section);
             });
         });
         return false;
@@ -167,9 +175,10 @@ bool _tbs_detect_section_location(_tbs_section_location *result, unsigned char *
     if ((result->end = _tbs_memmem_reversed(start_label, end_label, foot_opcode, sizeof(foot_opcode))) == NULL) {
         _tbs_log_stringify_memory(start_label, end_label - start_label, section, {
             _tbs_log_stringify_memory(foot_opcode, sizeof(foot_opcode), foot_opcode_str, {
-                _tbs_log_error("Could not detect section end. Section end tag: %s Section: %s", foot_opcode_str, section);
+                _tbs_log_error("Could not detect section end. Section end tag: %s Section: start=%p, end=%p code=%s", foot_opcode_str, start_label, end_label, section);
             });
         });
+        result->start = NULL;
         return false;
     }
 
