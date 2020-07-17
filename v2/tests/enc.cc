@@ -60,6 +60,17 @@ TEST(tbs_enc, encryption_changes_code) {
     free(code_after);
 }
 
+TEST(tbs_enc_exp, execute_multiple_times) {
+    int sum = 0;
+    volatile int one = 1;
+
+    for (int i = 0; i < 10; i++) {
+        sum += tbs_enc_exp(one, _.re_encrypt=true);
+    }
+
+    ASSERT_EQ(sum, 10);
+}
+
 /*
  * Some tests which are done in C and C++
  */
