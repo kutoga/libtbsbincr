@@ -1,4 +1,5 @@
 CPPFLAGS=-Wall -Wextra -Werror -O3 -fPIC -I include
+CPPFLAGS=-Wall -Wextra -Werror -O0 -g -fPIC -I include
 CFLAGS=-std=gnu11
 CXXFLAGS=-std=gnu++17
 

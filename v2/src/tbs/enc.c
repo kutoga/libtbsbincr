@@ -22,14 +22,14 @@ static_assert(
     "Cannot store more data than there is space in the enc_head!"
 );
 
-#define TBS_DECRPTED                            (((uint8_t[])_TBS_ENC_HEAD_OPCODE)[0])
+#define TBS_DECRPTED                            (uint8_t)(((uint8_t[])_TBS_ENC_HEAD_OPCODE)[0])
 
 /*
  * Why is the value stored in a temporary variable?
  * Because of a gcc bug:
  * https://stackoverflow.com/questions/18447210/understanding-the-warning-comparison-of-promoted-unsigned-with-unsigned
  */
-#define TBS_ENCRYPTED                           ({ const __auto_type _tbs_tmp = ~TBS_DECRPTED; _tbs_tmp; })
+#define TBS_ENCRYPTED                           ({ const uint8_t _tbs_tmp = ~TBS_DECRPTED; _tbs_tmp; })
 
 /*
  * The encryption foot
@@ -68,7 +68,7 @@ bool _tbs_enc_encrypt(const _tbs_section_location *section, tbs_random *random, 
     }
 
     if (head->encryption_state != TBS_DECRPTED) {
-        _tbs_log_warn("Section %p had an invalid encryption state: %x", section->start, head->encryption_state);
+        _tbs_log_warn("Section %p had an invalid encryption state (expected %02X): %02X", section->start, TBS_DECRPTED, head->encryption_state);
         return false;
     }
 
@@ -128,7 +128,7 @@ bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm
     }
 
     if (head->encryption_state != TBS_ENCRYPTED) {
-        _tbs_log_warn("Section %p had an invalid encryption state: %x", section->start, head->encryption_state);
+        _tbs_log_warn("Section %p had an invalid encryption state (expected %02X): %02X", section->start, TBS_ENCRYPTED, head->encryption_state);
         return false;
     }
 
@@ -150,17 +150,19 @@ bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm
         checksum = tbs_checksum_next(checksum, *enc_data);
         *enc_data = crypto_alg.decrypt(&crypto_alg, *enc_data);
     }
-    tbs_page_set_rx(section->end, total_section_size);
 
     crypto_alg.data_cleanup(&crypto_alg);
 
     if (checksum != foot->checksum) {
+        tbs_page_set_rx(section->end, total_section_size);
         _tbs_log_error("Invalid checksum! Corrupted state!");
         return false;
     }
 
     tbs_enc_reset_head_opcode(section->start);
     tbs_enc_reset_foot_opcode(section->end - sizeof(*foot));
+
+    tbs_page_set_rx(section->end, total_section_size);
 
     _tbs_log_stringify_memory(section->start, total_section_size, mem, ({
         _tbs_log_trace("Section content after decryption: %s", mem);
