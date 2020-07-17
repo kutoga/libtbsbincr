@@ -61,9 +61,6 @@ bool _tbs_enc_encrypt(const _tbs_section_location *section, tbs_random *random, 
 
     const size_t total_section_size = section->end - section->start;
     _tbs_log_trace("Encrypt: start=%p end=%p", head, foot);
-    // _tbs_log_stringify_memory(section->start, total_section_size, mem, ({
-    //     _tbs_log_trace("Section content: %s", mem);
-    // }));
 
     if (head->encryption_state == TBS_ENCRYPTED) {
         _tbs_log_trace("Section %p is already encrypted", section->start);
@@ -74,6 +71,10 @@ bool _tbs_enc_encrypt(const _tbs_section_location *section, tbs_random *random, 
         _tbs_log_warn("Section %p had an invalid encryption state: %x", section->start, head->encryption_state);
         return false;
     }
+
+    _tbs_log_stringify_memory(section->start, total_section_size, mem, ({
+        _tbs_log_trace("Section content before encryption: %s", mem);
+    }));
 
     const uint32_t key = random->next(random);
     tbs_crypto_algorithm crypto_alg;
@@ -91,6 +92,10 @@ bool _tbs_enc_encrypt(const _tbs_section_location *section, tbs_random *random, 
     head->code_length = section->end - section->start - sizeof(*head) - sizeof(*foot);
     foot->checksum = checksum;
     tbs_page_set_rx(section->start, total_section_size);
+
+    _tbs_log_stringify_memory(section->start, total_section_size, mem, ({
+        _tbs_log_trace("Section content after encryption: %s", mem);
+    }));
 
     return true;
 }
@@ -116,9 +121,6 @@ bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm
     const size_t code_length = section->end - section->start - sizeof(*head) - sizeof(*foot);
     const size_t total_section_size = section->end - section->start;
     _tbs_log_trace("Decrypt: start=%p end=%p", head, foot);
-    // _tbs_log_stringify_memory(section->start, total_section_size, mem, ({
-    //     _tbs_log_trace("Section content: %s", mem);
-    // }));
 
     if (head->encryption_state == TBS_DECRPTED) {
         _tbs_log_trace("Section %p is already decrypted", section->start);
@@ -134,6 +136,10 @@ bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm
         _tbs_log_warn("Section %p has an invalid code length defined", section->start);
         return false;
     }
+
+    _tbs_log_stringify_memory(section->start, total_section_size, mem, ({
+        _tbs_log_trace("Section content before decryption: %s", mem);
+    }));
 
     tbs_crypto_algorithm crypto_alg;
     crypto_algorithm_init(&crypto_alg, head->key);
@@ -155,6 +161,10 @@ bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm
 
     tbs_enc_reset_head_opcode(section->start);
     tbs_enc_reset_foot_opcode(section->end - sizeof(*foot));
+
+    _tbs_log_stringify_memory(section->start, total_section_size, mem, ({
+        _tbs_log_trace("Section content after decryption: %s", mem);
+    }));
 
     return false;
 }
@@ -184,4 +194,11 @@ bool _tbs_detect_section_location(_tbs_section_location *result, unsigned char *
 
     _tbs_log_trace("Detected section start=%p and section end=%p", result->start, result->end);
     return true;
+}
+
+void _tbs_detect_section_location_or_kill(_tbs_section_location *result, unsigned char *start_label, unsigned char *end_label) {
+    if (!_tbs_detect_section_location(result, start_label, end_label)) {
+        _tbs_log_fatal("Require a section!");
+        exit(1);
+    }
 }

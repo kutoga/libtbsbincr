@@ -102,12 +102,14 @@ _TBS_STMT_WRAPPER(                                                          \
 /*
  * Disable optimizations for a piece of code.
  */
-#define _TBS_DISABLE_OPTIMIZATIONS(code)                                    \
-_Pragma("GCC push_options")                                                 \
-_Pragma("GCC optimize (\"O0\")")                                                \
-code                                                                        \
-_Pragma("GCC pop_options")                                                  \
+#ifdef TBS_ENC_DISABLE
 
+/* No encryption does not need restricted optimizations */
+#define tbs_restricted_opt
+#define tbs_restrcited_opt_begin
+#define tbs_restrcited_opt_end
+
+#else
 #ifdef _TBS_IS_GCC
 #define tbs_restricted_opt                                                  __attribute__((optimize("no-schedule-insns,no-schedule-insns2")))
 
@@ -128,6 +130,7 @@ _Pragma("GCC pop_options")
 #define _tbs_auto_type                                                      auto
 #else
 #define _tbs_auto_type                                                      __auto_type
+#endif
 #endif
 
 unsigned char *_tbs_memmem(unsigned char *start_incl, unsigned char *end_excl, const unsigned char *pattern, size_t pattern_size);

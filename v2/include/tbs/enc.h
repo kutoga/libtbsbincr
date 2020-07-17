@@ -116,6 +116,8 @@ typedef struct _tbs_section_location {
 
 bool _tbs_detect_section_location(_tbs_section_location *result, unsigned char *start_label, unsigned char *end_label);
 
+void _tbs_detect_section_location_or_kill(_tbs_section_location *result, unsigned char *start_label, unsigned char *end_label);
+
 bool _tbs_enc_encrypt(const _tbs_section_location *section, tbs_random *random, tbs_crypto_algorithm_initializer crypto_algorithm_init);
 
 bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm_initializer crypto_algorithm_init);
@@ -142,14 +144,14 @@ bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm
                 PTHREAD_MUTEX_INITIALIZER;                                      \
             pthread_mutex_lock(&_TBS_SYM_NAME(n, section_detection_lock));      \
             if (!_TBS_SECTION_IS_DEFINED(_TBS_SYM_NAME(n, section_location))) { \
-                _tbs_detect_section_location(                                   \
+                _tbs_detect_section_location_or_kill(                                   \
                     &_TBS_SYM_NAME(n, section_location),                 \
                     (unsigned char *)&&_TBS_SYM_NAME(n, section_start),         \
                     (unsigned char *)&&_TBS_SYM_NAME(n, section_end));           \
             }                                                                       \
             pthread_mutex_unlock(&_TBS_SYM_NAME(n, section_detection_lock));        \
         } else {                                                                    \
-                _tbs_detect_section_location(                                   \
+                _tbs_detect_section_location_or_kill(                                   \
                     &_TBS_SYM_NAME(n, section_location),                 \
                     (unsigned char *)&&_TBS_SYM_NAME(n, section_start),         \
                     (unsigned char *)&&_TBS_SYM_NAME(n, section_end));           \

@@ -29,17 +29,11 @@ TEST(tbs_enc, section_tags) {
     const unsigned char head_opcode[] = _TBS_ENC_HEAD_OPCODE;
     const unsigned char foot_opcode[] = _TBS_ENC_FOOT_OPCODE;
 
-    printf("start=%p\n", CODE_START);
-    printf("end  =%p\n", CODE_END);
-    printf("len  =%d\n", (int)CODE_LEN);
-
     CODE_START_MARKER;
     tbs_enc({
         dummy++; 
     }, _.re_encrypt=false);
     CODE_END_MARKER;
-
-    printf("hey");
 
     unsigned char *head = _tbs_memmem(CODE_START, CODE_END, head_opcode, sizeof(head_opcode));
     unsigned char *foot = _tbs_memmem_reversed(CODE_START, CODE_END, foot_opcode, sizeof(foot_opcode));

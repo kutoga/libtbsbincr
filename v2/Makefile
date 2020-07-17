@@ -14,11 +14,14 @@ TEST_CPPFILES=$(shell find tests -name '*.cc')
 TEST_CFILES=$(shell find tests -name '*.c')
 TEST_OFILES=$(TEST_CPPFILES:.cc=.o) $(TEST_CFILES:.c=.o)
 
+EXAMPLES_CFILES=$(shell find examples -name '*.c')
+EXAMPLES=$(EXAMPLES_CFILES:.c=)
+
 DEP=.dep
 
 TARGETS=libtbsenc.a test
 
-.PHONY: all clean check
+.PHONY: all clean check examples
 .SECONDARY:
 
 all: $(TARGETS)
@@ -31,7 +34,9 @@ DEP_FILES:=$(shell [ -d '$(DEP)' ] && find $(DEP) -name '*.d')
 -include $(DEP_FILES)
 
 clean:
-	$(RM) -r $(find src -name '*.o') $(TARGETS) $(OFILES) $(TEST_OFILES) $(DEP) tests/main
+	$(RM) -r $(find src -name '*.o') $(TARGETS) $(OFILES) $(TEST_OFILES) $(DEP) tests/main $(EXAMPLES)
+
+examples: $(EXAMPLES)
 
 %.o: %.c
 	@mkdir -p $(DEP)/$(dir $<)
@@ -52,6 +57,9 @@ test: test.o libtbsenc.a
 
 tests/main: $(TEST_OFILES) libtbsenc.a
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $^ -lgtest -lpthread -o $@
+
+examples/%: examples/%.o libtbsenc.a
+	$(CC) $(CFLAGS) $(CPPFLAGS) $^ -lpthread -o $@
 
 check: tests/main
 	./$<
