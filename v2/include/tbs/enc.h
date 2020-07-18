@@ -122,6 +122,8 @@ bool _tbs_enc_encrypt(const _tbs_section_location *section, tbs_random *random, 
 
 bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm_initializer crypto_algorithm_init);
 
+// TODO: Pass mutex from enc_exp to _TBS_PROTECTED_EXPRESSION (so we only need one mutex)
+
 /*
  * Encrypt a given expression.
  * 
