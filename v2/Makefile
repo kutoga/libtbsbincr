@@ -15,8 +15,9 @@ TEST_CPPFILES=$(shell find tests -name '*.cc')
 TEST_CFILES=$(shell find tests -name '*.c')
 TEST_OFILES=$(TEST_CPPFILES:.cc=.o) $(TEST_CFILES:.c=.o)
 
+EXAMPLES_CPPFILES=$(shell find examples -name '*.cc')
 EXAMPLES_CFILES=$(shell find examples -name '*.c')
-EXAMPLES=$(EXAMPLES_CFILES:.c=)
+EXAMPLES=$(EXAMPLES_CFILES:.c=) $(EXAMPLES_CPPFILES:.cc=)
 
 DEP=.dep
 
