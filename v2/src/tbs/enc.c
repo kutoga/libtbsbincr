@@ -53,7 +53,7 @@ static_assert(
 
 bool _tbs_enc_encrypt(const _tbs_section_location *section, tbs_random *random, tbs_crypto_algorithm_initializer crypto_algorithm_init) {
     tbs_enc_head_data *head = (tbs_enc_head_data *)section->start;
-    tbs_enc_foot_data *foot = (tbs_enc_foot_data *)(section->end - sizeof(tbs_enc_foot_data));
+    tbs_enc_foot_data *foot = (tbs_enc_foot_data *)(section->end - _TBS_ENC_FOOT_LEN);
     if (!_TBS_SECTION_IS_DEFINED(*section)) {
         _tbs_log_error("Section is not defined! Do nothing!");
         return false;
@@ -82,14 +82,14 @@ bool _tbs_enc_encrypt(const _tbs_section_location *section, tbs_random *random, 
     uint16_t checksum = TBS_CHECKSUM_INIT;
 
     tbs_page_set_rwx(section->start, total_section_size);
-    for (unsigned char *enc_data = section->start + sizeof(*head); enc_data < section->end - sizeof(*foot); ++enc_data) {
+    for (unsigned char *enc_data = section->start + sizeof(*head); enc_data < section->end - _TBS_ENC_FOOT_LEN; ++enc_data) {
         *enc_data = crypto_alg.encrypt(&crypto_alg, *enc_data);
         checksum = tbs_checksum_next(checksum, *enc_data);
     }
     crypto_alg.data_cleanup(&crypto_alg);
     head->encryption_state = TBS_ENCRYPTED;
     head->key = key;
-    head->code_length = section->end - section->start - sizeof(*head) - sizeof(*foot);
+    head->code_length = section->end - section->start - sizeof(*head) - _TBS_ENC_FOOT_LEN;
     foot->checksum = checksum;
     tbs_page_set_rx(section->start, total_section_size);
 
@@ -101,24 +101,24 @@ bool _tbs_enc_encrypt(const _tbs_section_location *section, tbs_random *random, 
 }
 
 static void tbs_enc_reset_head_opcode(unsigned char *section_head) {
-    const char head_opcode[] = _TBS_ENC_HEAD_OPCODE;
+    const unsigned char head_opcode[] = _TBS_ENC_HEAD_OPCODE;
     memcpy(section_head, head_opcode, sizeof(head_opcode));
 }
 
 static void tbs_enc_reset_foot_opcode(unsigned char *section_foot) {
-    const char foot_opcode[] = _TBS_ENC_FOOT_OPCODE;
+    const unsigned char foot_opcode[] = _TBS_ENC_FOOT_OPCODE;
     memcpy(section_foot, foot_opcode, sizeof(foot_opcode));
 }
 
 bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm_initializer crypto_algorithm_init) {
     tbs_enc_head_data *head = (tbs_enc_head_data *)section->start;
-    tbs_enc_foot_data *foot = (tbs_enc_foot_data *)(section->end - sizeof(tbs_enc_foot_data));
+    tbs_enc_foot_data *foot = (tbs_enc_foot_data *)(section->end - _TBS_ENC_FOOT_LEN);
     if (!_TBS_SECTION_IS_DEFINED(*section)) {
         _tbs_log_error("Section is not defined! Do nothing!");
         return false;
     }
 
-    const size_t code_length = section->end - section->start - sizeof(*head) - sizeof(*foot);
+    const size_t code_length = section->end - section->start - sizeof(*head) - _TBS_ENC_FOOT_LEN;
     const size_t total_section_size = section->end - section->start;
     _tbs_log_trace("Decrypt: start=%p end=%p", head, foot);
 
@@ -146,7 +146,7 @@ bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm
     uint16_t checksum = TBS_CHECKSUM_INIT;
 
     tbs_page_set_rwx(section->start, total_section_size);
-    for (unsigned char *enc_data = section->start + sizeof(*head); enc_data < section->end - sizeof(*foot); ++enc_data) {
+    for (unsigned char *enc_data = section->start + sizeof(*head); enc_data < section->end - _TBS_ENC_FOOT_LEN; ++enc_data) {
         checksum = tbs_checksum_next(checksum, *enc_data);
         *enc_data = crypto_alg.decrypt(&crypto_alg, *enc_data);
     }
@@ -159,8 +159,8 @@ bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm
         return false;
     }
 
-    tbs_enc_reset_head_opcode(section->start);
-    tbs_enc_reset_foot_opcode(section->end - sizeof(*foot));
+    tbs_enc_reset_head_opcode((unsigned char *)head);
+    tbs_enc_reset_foot_opcode((unsigned char *)foot);
 
     tbs_page_set_rx(section->end, total_section_size);
 
@@ -184,7 +184,8 @@ bool _tbs_detect_section_location(_tbs_section_location *result, unsigned char *
         return false;
     }
 
-    if ((result->end = _tbs_memmem_reversed(start_label, end_label, foot_opcode, sizeof(foot_opcode))) == NULL) {
+    unsigned char *foot_start; 
+    if ((foot_start = _tbs_memmem_reversed(start_label, end_label, foot_opcode, sizeof(foot_opcode))) == NULL) {
         _tbs_log_stringify_memory(start_label, end_label - start_label, section, {
             _tbs_log_stringify_memory(foot_opcode, sizeof(foot_opcode), foot_opcode_str, {
                 _tbs_log_error("Could not detect section end. Section end tag: %s Section: start=%p, end=%p code=%s", foot_opcode_str, start_label, end_label, section);
@@ -193,6 +194,8 @@ bool _tbs_detect_section_location(_tbs_section_location *result, unsigned char *
         result->start = NULL;
         return false;
     }
+
+    result->end = foot_start + sizeof(foot_opcode);
 
     _tbs_log_trace("Detected section start=%p and section end=%p", result->start, result->end);
     return true;
