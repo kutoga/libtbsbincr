@@ -171,24 +171,24 @@ bool _tbs_enc_decrypt(const _tbs_section_location *section, tbs_crypto_algorithm
     return false;
 }
 
-bool _tbs_detect_section_location(_tbs_section_location *result, unsigned char *start_label, unsigned char *end_label) {
+bool _tbs_detect_decrypted_section_location(_tbs_section_location *result, unsigned char *start_label, unsigned char *end_label) {
     static const unsigned char head_opcode[] = _TBS_ENC_HEAD_OPCODE;
     static const unsigned char foot_opcode[] = _TBS_ENC_FOOT_OPCODE;
 
     if ((result->start = _tbs_memmem(start_label, end_label, head_opcode, sizeof(head_opcode))) == NULL) {
         _tbs_log_stringify_memory(start_label, end_label - start_label, section, {
             _tbs_log_stringify_memory(head_opcode, sizeof(head_opcode), head_opcode_str, {
-                _tbs_log_error("Could not detect section start. Section start tag: %s Section: start=%p, end=%p code=%s", head_opcode_str, start_label, end_label, section);
+                _tbs_log_warn("Could not detect decrypted section start. Section start tag: %s Section: start=%p, end=%p code=%s", head_opcode_str, start_label, end_label, section);
             });
         });
         return false;
     }
 
     unsigned char *foot_start; 
-    if ((foot_start = _tbs_memmem_reversed(start_label, end_label, foot_opcode, sizeof(foot_opcode))) == NULL) {
+    if ((foot_start = _tbs_memmem_reversed(result->start + sizeof(head_opcode), end_label, foot_opcode, sizeof(foot_opcode))) == NULL) {
         _tbs_log_stringify_memory(start_label, end_label - start_label, section, {
             _tbs_log_stringify_memory(foot_opcode, sizeof(foot_opcode), foot_opcode_str, {
-                _tbs_log_error("Could not detect section end. Section end tag: %s Section: start=%p, end=%p code=%s", foot_opcode_str, start_label, end_label, section);
+                _tbs_log_warn("Could not detect section end. Section end tag: %s Section: start=%p, end=%p code=%s", foot_opcode_str, start_label, end_label, section);
             });
         });
         result->start = NULL;
@@ -197,8 +197,20 @@ bool _tbs_detect_section_location(_tbs_section_location *result, unsigned char *
 
     result->end = foot_start + sizeof(foot_opcode);
 
-    _tbs_log_trace("Detected section start=%p and section end=%p", result->start, result->end);
+    _tbs_log_trace("Detected decrypted section start=%p and section end=%p", result->start, result->end);
     return true;
+}
+
+bool _tbs_detect_encrypted_section_location(_tbs_section_location *result, unsigned char *start_label, unsigned char *end_label) {
+    _TBS_USE_VAR(result);
+    _TBS_USE_VAR(start_label);
+    _TBS_USE_VAR(end_label);
+    /* TODO */
+    return false;
+}
+
+bool _tbs_detect_section_location(_tbs_section_location *result, unsigned char *start_label, unsigned char *end_label) {
+    return _tbs_detect_decrypted_section_location(result, start_label, end_label) || _tbs_detect_encrypted_section_location(result, start_label, end_label);
 }
 
 void _tbs_detect_section_location_or_kill(_tbs_section_location *result, unsigned char *start_label, unsigned char *end_label) {
